@@ -6,7 +6,7 @@ import {
   batch,
 } from "../../../../packages/react-signals/src/core/index.ts";
 import {
-  setWriteLaneProvider,
+  setWriteBatchProvider,
   isForked,
 } from "../../../../packages/react-signals/src/core/engine.ts";
 
@@ -50,9 +50,9 @@ export const reactSignalsForkedFramework: ReactiveFramework = {
   withBuild: (fn) => {
     if (!isForked()) {
       const dummy = new Atom({ state: 0 });
-      setWriteLaneProvider(() => ({ lane: 1 << 20, transition: true }));
-      dummy.set(1); // enters forked mode; the entry never folds
-      setWriteLaneProvider(null);
+      setWriteBatchProvider(() => ({ deferred: true }));
+      dummy.set(1); // enters forked mode; the batch never retires
+      setWriteBatchProvider(null);
     }
     return fn();
   },
