@@ -4,11 +4,11 @@ import {
   Computed,
   effect,
   batch,
-} from "../../../../packages/react-signals/src/core/index.ts";
+} from "../../../../packages/cosignal/src/core/index.ts";
 import {
   setWriteBatchProvider,
   isForked,
-} from "../../../../packages/react-signals/src/core/engine.ts";
+} from "../../../../packages/cosignal/src/core/engine.ts";
 
 function makeFramework(name: string): ReactiveFramework {
   return {
@@ -36,7 +36,7 @@ function makeFramework(name: string): ReactiveFramework {
   };
 }
 
-export const reactSignalsFramework = makeFramework("react-signals");
+export const cosignalFramework = makeFramework("cosignal");
 
 /**
  * Same engine, but with the two-plane ("forked") mode permanently active:
@@ -45,8 +45,8 @@ export const reactSignalsFramework = makeFramework("react-signals");
  * paths. Measures the worst-case overhead of concurrent-world bookkeeping —
  * in a real app this state only exists while a transition is pending.
  */
-export const reactSignalsForkedFramework: ReactiveFramework = {
-  ...makeFramework("react-signals (forked)"),
+export const cosignalForkedFramework: ReactiveFramework = {
+  ...makeFramework("cosignal (forked)"),
   withBuild: (fn) => {
     if (!isForked()) {
       const dummy = new Atom({ state: 0 });

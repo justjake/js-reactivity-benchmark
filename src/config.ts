@@ -1,7 +1,7 @@
 import { TestConfig, FrameworkInfo } from "./util/frameworkTypes";
 
 import { alienFramework } from "./frameworks/alienSignals";
-import { reactSignalsFramework, reactSignalsForkedFramework } from "./frameworks/reactSignals";
+import { cosignalFramework, cosignalForkedFramework } from "./frameworks/cosignal";
 import { angularFramework } from "./frameworks/angularSignals";
 import { mobxFramework } from "./frameworks/mobx";
 import { tc39SignalsProposalStage0 } from "./frameworks/tc39-proposal-signals-stage-0";
@@ -20,8 +20,8 @@ import { tansuFramework } from "./frameworks/tansu";
 // import { valtioFramework } from "./frameworks/valtio";
 
 const allFrameworkInfo: FrameworkInfo[] = [
-  { framework: reactSignalsFramework, testPullCounts: true },
-  { framework: reactSignalsForkedFramework, testPullCounts: true },
+  { framework: cosignalFramework, testPullCounts: true },
+  { framework: cosignalForkedFramework, testPullCounts: true },
   { framework: alienFramework, testPullCounts: true },
   { framework: preactSignalFramework, testPullCounts: true },
   { framework: svelteFramework, testPullCounts: true },
@@ -50,7 +50,7 @@ const allFrameworkInfo: FrameworkInfo[] = [
 
 // Optional filter for faster runs: BENCH_FRAMEWORKS is a comma-separated list
 // of case-insensitive substrings matched against framework names, e.g.
-// BENCH_FRAMEWORKS="react-signals,alien" runs only those. Unset runs all.
+// BENCH_FRAMEWORKS="cosignal,alien" runs only those. Unset runs all.
 const frameworkFilter = process.env.BENCH_FRAMEWORKS?.split(",")
   .map((s) => s.trim().toLowerCase())
   .filter((s) => s.length > 0);
