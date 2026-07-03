@@ -19,7 +19,7 @@ import { tansuFramework } from "./frameworks/tansu";
 // import { compostateFramework } from "./frameworks/compostate";
 // import { valtioFramework } from "./frameworks/valtio";
 
-export const frameworkInfo: FrameworkInfo[] = [
+const allFrameworkInfo: FrameworkInfo[] = [
   { framework: reactSignalsFramework, testPullCounts: true },
   { framework: reactSignalsForkedFramework, testPullCounts: true },
   { framework: alienFramework, testPullCounts: true },
@@ -47,6 +47,20 @@ export const frameworkInfo: FrameworkInfo[] = [
   // NOTE: Valtio currently hangs on some of the `dynamic` tests, so disable it if you want to run them. (https://github.com/pmndrs/valtio/discussions/949)
   // { framework: valtioFramework },
 ];
+
+// Optional filter for faster runs: BENCH_FRAMEWORKS is a comma-separated list
+// of case-insensitive substrings matched against framework names, e.g.
+// BENCH_FRAMEWORKS="react-signals,alien" runs only those. Unset runs all.
+const frameworkFilter = process.env.BENCH_FRAMEWORKS?.split(",")
+  .map((s) => s.trim().toLowerCase())
+  .filter((s) => s.length > 0);
+
+export const frameworkInfo: FrameworkInfo[] =
+  frameworkFilter === undefined || frameworkFilter.length === 0
+    ? allFrameworkInfo
+    : allFrameworkInfo.filter(({ framework }) =>
+        frameworkFilter.some((f) => framework.name.toLowerCase().includes(f)),
+      );
 
 export const perfTests: TestConfig[] = [
   {
