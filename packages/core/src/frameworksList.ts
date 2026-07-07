@@ -13,6 +13,7 @@ import { solidFramework } from "./frameworks/solid";
 import { potaFramework } from "./frameworks/pota";
 import { svelteFramework } from "./frameworks/svelte";
 import { tansuFramework } from "./frameworks/tansu";
+import { tanstackStoreFramework } from "./frameworks/tanstackStore";
 import { usignalFramework } from "./frameworks/inactive/uSignal";
 import { vueReactivityFramework } from "./frameworks/inactive/vueReactivity";
 import { xReactivityFramework } from "./frameworks/xReactivity";
@@ -41,6 +42,7 @@ export const frameworkInfo: FrameworkInfo[] = [
   { framework: potaFramework },
   { framework: svelteFramework, testPullCounts: true },
   { framework: tansuFramework, testPullCounts: true },
+  { framework: tanstackStoreFramework, testPullCounts: true },
   { framework: vueReactivityFramework, testPullCounts: true },
   { framework: xReactivityFramework, testPullCounts: true },
 ];
@@ -61,6 +63,7 @@ export const allFrameworks: FrameworkInfo[] = [
   { framework: potaFramework },
   { framework: svelteFramework, testPullCounts: true },
   { framework: tansuFramework, testPullCounts: true },
+  { framework: tanstackStoreFramework, testPullCounts: true },
   // { framework: tc39SignalsFramework, testPullCounts: true },
   { framework: usignalFramework, testPullCounts: true },
   { framework: vueReactivityFramework, testPullCounts: true },
