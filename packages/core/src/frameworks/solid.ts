@@ -7,21 +7,28 @@ import {
   createSignal,
 } from "solid-js/dist/solid.cjs";
 
-export const solidFramework: ReactiveFramework = {
+// A cell is solid's own accessor function. createSignal returns a
+// [get, set] pair; the setter rides along as a property on the getter so
+// the pair is not retained and every read stays a bare call.
+type SolidCell = {
+  (): unknown;
+  set?: (v: unknown) => void;
+};
+
+export const solidFramework: ReactiveFramework<SolidCell> = {
   name: "SolidJS",
-  signal: (initialValue) => {
+  createSignal: (initialValue) => {
     const [getter, setter] = createSignal(initialValue);
-    return {
-      write: (v) => setter(v as any),
-      read: () => getter(),
-    };
+    const cell = getter as SolidCell;
+    cell.set = setter as (v: unknown) => void;
+    return cell;
   },
-  computed: (fn) => {
-    const memo = createMemo(fn);
-    return {
-      read: () => memo(),
-    };
+  readSignal: (s) => s(),
+  writeSignal: (s, value) => {
+    s.set!(value);
   },
+  createComputed: (fn) => createMemo(fn),
+  readComputed: (c) => c(),
   effect: (fn) => createEffect(fn),
   withBatch: (fn) => batch(fn),
   withBuild: (fn) =>

@@ -1,21 +1,21 @@
 import { Counter } from "../../util/counter";
-import { Computed, ReactiveFramework } from "../../util/reactiveFramework";
+import { ReactiveFramework } from "../../util/reactiveFramework";
 let len = 50;
 
 /** deep propagation */
-export function deepPropagation(bridge: ReactiveFramework) {
-  let head = bridge.signal(0);
-  let current = head as Computed<number>;
+export function deepPropagation<S>(bridge: ReactiveFramework<S>) {
+  let head = bridge.createSignal(0);
+  let current = head;
   for (let i = 0; i < len; i++) {
     let c = current;
-    current = bridge.computed(() => {
-      return c.read() + 1;
+    current = bridge.createComputed(() => {
+      return (bridge.readComputed(c) as number) + 1;
     });
   }
   let callCounter = new Counter();
 
   bridge.effect(() => {
-    current.read();
+    bridge.readComputed(current);
     callCounter.count++;
   });
 
@@ -23,15 +23,15 @@ export function deepPropagation(bridge: ReactiveFramework) {
 
   return () => {
     bridge.withBatch(() => {
-      head.write(1);
+      bridge.writeSignal(head, 1);
     });
     const atleast = iter;
     callCounter.count = 0;
     for (let i = 0; i < iter; i++) {
       bridge.withBatch(() => {
-        head.write(i);
+        bridge.writeSignal(head, i);
       });
-      console.assert(current.read() === len + i);
+      console.assert(bridge.readComputed(current) === len + i);
     }
 
     console.assert(callCounter.count === atleast);

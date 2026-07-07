@@ -10,21 +10,19 @@ import * as $ from "svelte/internal/client";
 // efficient TS implementations available, I wanted to include it in the
 // benchmark suite regardless.
 
-export const svelteFramework: ReactiveFramework = {
+// A cell is svelte's own internal source/derived object, read through $.get
+// and written through $.set. The object is opaque to the benchmarks.
+type SvelteCell = unknown;
+
+export const svelteFramework: ReactiveFramework<SvelteCell> = {
   name: "Svelte v5",
-  signal: (initialValue) => {
-    const s = $.state(initialValue);
-    return {
-      write: (v) => $.set(s, v),
-      read: () => $.get(s),
-    };
+  createSignal: (initialValue) => $.state(initialValue),
+  readSignal: (s) => $.get(s),
+  writeSignal: (s, value) => {
+    $.set(s, value);
   },
-  computed: (fn) => {
-    const c = $.derived(fn);
-    return {
-      read: () => $.get(c),
-    };
-  },
+  createComputed: (fn) => $.derived(fn),
+  readComputed: (c) => $.get(c),
   effect: (fn) => {
     $.render_effect(fn);
   },

@@ -1,17 +1,16 @@
 // Inspired by https://github.com/solidjs/solid/blob/main/packages/solid/bench/bench.cjs
 
 import { nextTick } from "../util/asyncUtil";
-import { fastestTest } from "../util/benchRepeat";
+import { medianOf } from "../util/medianOf";
 import { PerfResultCallback } from "../util/perfLogging";
-import { Computed, ReactiveFramework, Signal } from "../util/reactiveFramework";
+import { ReactiveFramework } from "../util/reactiveFramework";
 
 const COUNT = 1e5;
 
 function empty() {}
 
-type Reader = () => number;
-export async function sbench(
-  framework: ReactiveFramework,
+export async function sbench<S>(
+  framework: ReactiveFramework<S>,
   logPerfResult: PerfResultCallback,
 ) {
   const createSignalsTime = await run(createSignals, COUNT, COUNT);
@@ -52,11 +51,11 @@ export async function sbench(
   });
 
   async function run(
-    fn: (n: number, sources: Signal<number>[]) => () => void,
+    fn: (n: number, sources: S[]) => () => void,
     n: number,
     scount: number,
   ) {
-    let sources: Signal<number>[] | null;
+    let sources: S[] | null;
     if (globalThis.gc) (gc!(), gc!());
     for (let i = 0; i < 3; i++) {
       let warmupUpdate = framework.withBuild(() => {
@@ -74,7 +73,7 @@ export async function sbench(
     if (globalThis.gc) (gc!(), gc!());
     await nextTick();
 
-    let fastestTime = Infinity;
+    const runTimes: number[] = [];
     for (let i = 0; i < 10; i++) {
       let start = 0;
       let end = 0;
@@ -82,9 +81,9 @@ export async function sbench(
         sources = [];
         createSignals(scount, sources);
         for (let i = 0; i < scount; i++) {
-          sources[i].read();
-          sources[i].read();
-          sources[i].read();
+          framework.readSignal(sources[i]);
+          framework.readSignal(sources[i]);
+          framework.readSignal(sources[i]);
         }
 
         start = performance.now();
@@ -100,102 +99,98 @@ export async function sbench(
       // end GC clean
       if (globalThis.gc) (gc!(), gc!());
 
-      let time = end - start;
-      if (time < fastestTime) {
-        fastestTime = time;
-      }
+      runTimes.push(end - start);
     }
-    return fastestTime;
+    return medianOf(runTimes);
   }
 
-  function createSignals(n: number, sources: Computed<number>[]) {
+  function createSignals(n: number, sources: S[]) {
     for (let i = 0; i < n; i++) {
-      sources[i] = framework.signal(i);
+      sources[i] = framework.createSignal(i);
     }
     return empty;
   }
 
-  function create0to1(n: number, _sources: Computed<number>[]) {
+  function create0to1(n: number, _sources: S[]) {
     for (let i = 0; i < n; i++) {
       createComputation0(i);
     }
     return empty;
   }
 
-  function create1to1000(n: number, sources: Computed<number>[]) {
+  function create1to1000(n: number, sources: S[]) {
     for (let i = 0; i < n / 1000; i++) {
-      const { read: get } = sources[i];
+      const source = sources[i];
       for (let j = 0; j < 1000; j++) {
-        createComputation1(get);
+        createComputation1(source);
       }
     }
     return empty;
   }
 
-  function create1to8(n: number, sources: Computed<number>[]) {
+  function create1to8(n: number, sources: S[]) {
     for (let i = 0; i < n / 8; i++) {
-      const { read: get } = sources[i];
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
+      const source = sources[i];
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
     }
     return empty;
   }
 
-  function create1to4(n: number, sources: Computed<number>[]) {
+  function create1to4(n: number, sources: S[]) {
     for (let i = 0; i < n / 4; i++) {
-      const { read: get } = sources[i];
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
-      createComputation1(get);
+      const source = sources[i];
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
+      createComputation1(source);
     }
     return empty;
   }
 
-  function create1to2(n: number, sources: Computed<number>[]) {
+  function create1to2(n: number, sources: S[]) {
     for (let i = 0; i < n / 2; i++) {
-      const { read: get } = sources[i];
-      createComputation1(get);
-      createComputation1(get);
+      const source = sources[i];
+      createComputation1(source);
+      createComputation1(source);
     }
     return empty;
   }
 
-  function create1to1(n: number, sources: Computed<number>[]) {
+  function create1to1(n: number, sources: S[]) {
     for (let i = 0; i < n; i++) {
-      const { read: get } = sources[i];
-      createComputation1(get);
+      createComputation1(sources[i]);
     }
     return empty;
   }
 
-  function create2to1(n: number, sources: Computed<number>[]) {
+  function create2to1(n: number, sources: S[]) {
     for (let i = 0; i < n; i++) {
-      createComputation2(sources[i * 2].read, sources[i * 2 + 1].read);
+      createComputation2(sources[i * 2], sources[i * 2 + 1]);
     }
     return empty;
   }
 
-  function create4to1(n: number, sources: Computed<number>[]) {
+  function create4to1(n: number, sources: S[]) {
     for (let i = 0; i < n; i++) {
       createComputation4(
-        sources[i * 4].read,
-        sources[i * 4 + 1].read,
-        sources[i * 4 + 2].read,
-        sources[i * 4 + 3].read,
+        sources[i * 4],
+        sources[i * 4 + 1],
+        sources[i * 4 + 2],
+        sources[i * 4 + 3],
       );
     }
     return empty;
   }
 
   // only create n / 100 computations, as otherwise takes too long
-  function create1000to1(n: number, sources: Computed<number>[]) {
+  function create1000to1(n: number, sources: S[]) {
     for (let i = 0; i < n; i++) {
       createComputation1000(sources, i * 1000);
     }
@@ -203,130 +198,165 @@ export async function sbench(
   }
 
   function createComputation0(i: number) {
-    framework.effect(() => i);
-    return empty;
-  }
-
-  function createComputation1(s1: Reader) {
-    framework.effect(() => s1());
-    return empty;
-  }
-  function createComputation2(s1: Reader, s2: Reader) {
-    framework.effect(() => s1() + s2());
-    return empty;
-  }
-
-  function createComputation4(s1: Reader, s2: Reader, s3: Reader, s4: Reader) {
-    framework.effect(() => s1() + s2() + s3() + s4());
-    return empty;
-  }
-
-  function createComputation1000(ss: Computed<number>[], offset: number) {
     framework.effect(() => {
-      let sum = 0;
-      for (let i = 0; i < 1000; i++) {
-        sum += ss[offset + i].read();
-      }
-      return sum;
+      // 0-source effect; capture i so each effect gets a distinct closure
+      void i;
     });
     return empty;
   }
 
-  function update1to1(n: number, sources: Signal<number>[]) {
-    let { read: get1, write: set1 } = sources[0];
-    framework.effect(() => get1());
-    return () => {
-      for (let i = 0; i < n; i++) {
-        framework.withBatch(() => {
-          set1(i);
-        });
-      }
-    };
+  function createComputation1(s1: S) {
+    framework.effect(() => {
+      framework.readSignal(s1);
+    });
+    return empty;
+  }
+  function createComputation2(s1: S, s2: S) {
+    framework.effect(() => {
+      (framework.readSignal(s1) as number) +
+        (framework.readSignal(s2) as number);
+    });
+    return empty;
   }
 
-  function update2to1(n: number, sources: Signal<number>[]) {
-    let { read: get1, write: set1 } = sources[0],
-      { read: get2 } = sources[1];
-    framework.effect(() => get1() + get2());
-    return () => {
-      for (let i = 0; i < n; i++) {
-        framework.withBatch(() => {
-          set1(i);
-        });
-      }
-    };
+  function createComputation4(s1: S, s2: S, s3: S, s4: S) {
+    framework.effect(() => {
+      (framework.readSignal(s1) as number) +
+        (framework.readSignal(s2) as number) +
+        (framework.readSignal(s3) as number) +
+        (framework.readSignal(s4) as number);
+    });
+    return empty;
   }
 
-  function update4to1(n: number, sources: Signal<number>[]) {
-    let { read: get1, write: set1 } = sources[0],
-      { read: get2 } = sources[1],
-      { read: get3 } = sources[2],
-      { read: get4 } = sources[3];
-    framework.effect(() => get1() + get2() + get3() + get4());
-    return () => {
-      for (let i = 0; i < n; i++) {
-        framework.withBatch(() => {
-          set1(i);
-        });
-      }
-    };
-  }
-
-  function update1000to1(n: number, sources: Signal<number>[]) {
-    let { write: set1 } = sources[0];
+  function createComputation1000(ss: S[], offset: number) {
     framework.effect(() => {
       let sum = 0;
       for (let i = 0; i < 1000; i++) {
-        sum += sources[i].read();
+        sum += framework.readSignal(ss[offset + i]) as number;
       }
-      return sum;
+    });
+    return empty;
+  }
+
+  function update1to1(n: number, sources: S[]) {
+    const s0 = sources[0];
+    framework.effect(() => {
+      framework.readSignal(s0);
     });
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
-          set1(i);
+          framework.writeSignal(s0, i);
         });
       }
     };
   }
 
-  function update1to2(n: number, sources: Signal<number>[]) {
-    let { read: get1, write: set1 } = sources[0];
-    framework.effect(() => get1());
-    framework.effect(() => get1());
+  function update2to1(n: number, sources: S[]) {
+    const s0 = sources[0];
+    const s1 = sources[1];
+    framework.effect(() => {
+      (framework.readSignal(s0) as number) +
+        (framework.readSignal(s1) as number);
+    });
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
-          set1(i);
+          framework.writeSignal(s0, i);
         });
       }
     };
   }
 
-  function update1to4(n: number, sources: Signal<number>[]) {
-    let { read: get1, write: set1 } = sources[0];
-    framework.effect(() => get1());
-    framework.effect(() => get1());
-    framework.effect(() => get1());
-    framework.effect(() => get1());
+  function update4to1(n: number, sources: S[]) {
+    const s0 = sources[0];
+    const s1 = sources[1];
+    const s2 = sources[2];
+    const s3 = sources[3];
+    framework.effect(() => {
+      (framework.readSignal(s0) as number) +
+        (framework.readSignal(s1) as number) +
+        (framework.readSignal(s2) as number) +
+        (framework.readSignal(s3) as number);
+    });
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
-          set1(i);
+          framework.writeSignal(s0, i);
         });
       }
     };
   }
 
-  function update1to1000(n: number, sources: Signal<number>[]) {
-    const { read: get1, write: set1 } = sources[0];
+  function update1000to1(n: number, sources: S[]) {
+    const s0 = sources[0];
+    framework.effect(() => {
+      let sum = 0;
+      for (let i = 0; i < 1000; i++) {
+        sum += framework.readSignal(sources[i]) as number;
+      }
+    });
+    return () => {
+      for (let i = 0; i < n; i++) {
+        framework.withBatch(() => {
+          framework.writeSignal(s0, i);
+        });
+      }
+    };
+  }
+
+  function update1to2(n: number, sources: S[]) {
+    const s0 = sources[0];
+    framework.effect(() => {
+      framework.readSignal(s0);
+    });
+    framework.effect(() => {
+      framework.readSignal(s0);
+    });
+    return () => {
+      for (let i = 0; i < n; i++) {
+        framework.withBatch(() => {
+          framework.writeSignal(s0, i);
+        });
+      }
+    };
+  }
+
+  function update1to4(n: number, sources: S[]) {
+    const s0 = sources[0];
+    framework.effect(() => {
+      framework.readSignal(s0);
+    });
+    framework.effect(() => {
+      framework.readSignal(s0);
+    });
+    framework.effect(() => {
+      framework.readSignal(s0);
+    });
+    framework.effect(() => {
+      framework.readSignal(s0);
+    });
+    return () => {
+      for (let i = 0; i < n; i++) {
+        framework.withBatch(() => {
+          framework.writeSignal(s0, i);
+        });
+      }
+    };
+  }
+
+  function update1to1000(n: number, sources: S[]) {
+    const s0 = sources[0];
     for (let i = 0; i < 1000; i++) {
-      framework.effect(() => get1());
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
     }
     return () => {
       for (let i = 0; i < n / 10; i++) {
         framework.withBatch(() => {
-          set1(i);
+          framework.writeSignal(s0, i);
         });
       }
     };

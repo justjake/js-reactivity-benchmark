@@ -1,20 +1,16 @@
 import { Counter } from "../../util/counter";
 import { TestConfig } from "../../util/frameworkTypes";
 import { pseudoRandom } from "../../util/pseudoRandom";
-import {
-  Computed,
-  ReactiveFramework,
-  Signal,
-} from "../../util/reactiveFramework";
+import { ReactiveFramework } from "../../util/reactiveFramework";
 
-export interface Graph {
-  sources: Signal<number>[];
-  layers: Computed<number>[][];
-  readLeaves: Computed<number>[];
+export interface Graph<S> {
+  sources: S[];
+  layers: S[][];
+  readLeaves: S[];
 }
 
-export interface GraphAndCounter {
-  graph: Graph;
+export interface GraphAndCounter<S> {
+  graph: Graph<S>;
   counter: Counter;
 }
 
@@ -27,15 +23,17 @@ export interface GraphAndCounter {
  * @param staticFraction every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
  * @returns the graph
  */
-export function makeGraph(
-  framework: ReactiveFramework,
+export function makeGraph<S>(
+  framework: ReactiveFramework<S>,
   readFraction: number,
   config: TestConfig,
-): GraphAndCounter {
+): GraphAndCounter<S> {
   const { width, totalLayers, staticFraction, nSources } = config;
 
   return framework.withBuild(() => {
-    const sources = new Array(width).fill(0).map((_, i) => framework.signal(i));
+    const sources = new Array(width)
+      .fill(0)
+      .map((_, i) => framework.createSignal(i));
     const counter = new Counter();
     const rows = makeDependentRows(
       sources,
@@ -52,7 +50,7 @@ export function makeGraph(
     const readLeaves = removeElems(leaves, skipCount, rand);
     framework.effect(() => {
       for (const leaf of readLeaves) {
-        leaf.read();
+        framework.readComputed(leaf);
       }
     });
 
@@ -66,24 +64,27 @@ export function makeGraph(
  *
  * @return the sum of all leaf values
  */
-export function runGraph(
-  graph: Graph,
+export function runGraph<S>(
+  graph: Graph<S>,
   iterations: number,
-  framework: ReactiveFramework,
+  framework: ReactiveFramework<S>,
 ): number {
   const { sources, readLeaves } = graph;
 
   for (let i = 0; i < iterations; i++) {
     framework.withBatch(() => {
       const sourceDex = i % sources.length;
-      sources[sourceDex].write(i + sourceDex);
+      framework.writeSignal(sources[sourceDex], i + sourceDex);
     });
     for (const leaf of readLeaves) {
-      leaf.read();
+      framework.readComputed(leaf);
     }
   }
 
-  const sum = readLeaves.reduce((total, leaf) => leaf.read() + total, 0);
+  const sum = readLeaves.reduce(
+    (total, leaf) => (framework.readComputed(leaf) as number) + total,
+    0,
+  );
   return sum;
 }
 
@@ -96,14 +97,14 @@ function removeElems<T>(src: T[], rmCount: number, rand: () => number): T[] {
   return copy;
 }
 
-function makeDependentRows(
-  sources: Computed<number>[],
+function makeDependentRows<S>(
+  sources: S[],
   numRows: number,
   counter: Counter,
   staticFraction: number,
   nSources: number,
-  framework: ReactiveFramework,
-): Computed<number>[][] {
+  framework: ReactiveFramework<S>,
+): S[][] {
   let prevRow = sources;
   const random = pseudoRandom();
   const rows = [];
@@ -123,17 +124,17 @@ function makeDependentRows(
   return rows;
 }
 
-function makeRow(
-  sources: Computed<number>[],
+function makeRow<S>(
+  sources: S[],
   counter: Counter,
   staticFraction: number,
   nSources: number,
-  framework: ReactiveFramework,
+  framework: ReactiveFramework<S>,
   _layer: number,
   random: () => number,
-): Computed<number>[] {
+): S[] {
   return sources.map((_, myDex) => {
-    const mySources: Computed<number>[] = [];
+    const mySources: S[] = [];
     for (let sourceDex = 0; sourceDex < nSources; sourceDex++) {
       mySources.push(sources[(myDex + sourceDex) % sources.length]);
     }
@@ -141,12 +142,12 @@ function makeRow(
     const staticNode = random() < staticFraction;
     if (staticNode) {
       // static node, always reference sources
-      return framework.computed(() => {
+      return framework.createComputed(() => {
         counter.count++;
 
         let sum = 0;
         for (const src of mySources) {
-          sum += src.read();
+          sum += framework.readComputed(src) as number;
         }
         return sum;
       });
@@ -154,15 +155,15 @@ function makeRow(
       // dynamic node, drops one of the sources depending on the value of the first element
       const first = mySources[0];
       const tail = mySources.slice(1);
-      const node = framework.computed(() => {
+      const node = framework.createComputed(() => {
         counter.count++;
-        let sum = first.read();
+        let sum = framework.readComputed(first) as number;
         const shouldDrop = sum & 0x1;
         const dropDex = sum % tail.length;
 
         for (let i = 0; i < tail.length; i++) {
           if (shouldDrop && i === dropDex) continue;
-          sum += tail[i].read();
+          sum += framework.readComputed(tail[i]) as number;
         }
 
         return sum;

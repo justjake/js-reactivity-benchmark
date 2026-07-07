@@ -8,24 +8,30 @@ import {
 } from "alien-signals/esm";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
+// A cell is alien-signals' own callable: signals read via s() and write via
+// s(v); computeds read via c(). No per-cell wrapper is needed.
+type AlienCell = {
+  (): unknown;
+  (value: unknown): void;
+};
+
 let scope: (() => void) | null = null;
 
-export const alienFramework: ReactiveFramework = {
+export const alienFramework: ReactiveFramework<AlienCell> = {
   name: "Alien Signals",
-  signal: (initial) => {
-    const data = signal(initial);
-    return {
-      read: () => data(),
-      write: (v) => data(v),
-    };
+  createSignal: (initialValue) => signal(initialValue) as AlienCell,
+  readSignal: (s) => s(),
+  writeSignal: (s, value) => {
+    s(value);
   },
-  computed: (fn) => {
-    const c = computed(fn);
-    return {
-      read: () => c(),
-    };
+  createComputed: (fn) => computed(fn) as AlienCell,
+  readComputed: (c) => c(),
+  // alien-signals >= 3.2 treats a non-undefined return value from the effect
+  // callback as a cleanup function; the bench contract guarantees fn returns
+  // undefined, so fn passes through without a protective wrapper.
+  effect: (fn) => {
+    effect(fn);
   },
-  effect: (fn) => effect(fn),
   withBatch: (fn) => {
     startBatch();
     fn();

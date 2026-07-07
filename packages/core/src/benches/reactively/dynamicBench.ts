@@ -2,7 +2,7 @@ import { makeGraph, runGraph } from "./dependencyGraph";
 import { verifyBenchResult } from "../../util/perfTests";
 import { FrameworkInfo, TestConfig } from "../../util/frameworkTypes";
 import { perfTests } from "../../config";
-import { fastestTest } from "../../util/benchRepeat";
+import { medianTest } from "../../util/benchRepeat";
 import { PerfResultCallback } from "../../util/perfLogging";
 import { nextTick } from "../../util/asyncUtil";
 
@@ -18,7 +18,7 @@ export function makeTitle(config: TestConfig): string {
 }
 
 /** benchmark a single test under single framework.
- * The test is run multiple times and the fastest result is logged to the console.
+ * The test is run multiple times and the median result is logged to the console.
  */
 export async function dynamicBench(
   frameworkInfo: FrameworkInfo[],
@@ -43,7 +43,7 @@ export async function dynamicBench(
       await nextTick();
       runOnce();
 
-      const timedResult = await fastestTest(testRepeats, () => {
+      const timedResult = await medianTest(testRepeats, () => {
         counter.count = 0;
         const sum = runOnce();
         return { sum, count: counter.count };

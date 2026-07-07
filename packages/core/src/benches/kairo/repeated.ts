@@ -4,35 +4,35 @@ import { ReactiveFramework } from "../../util/reactiveFramework";
 let size = 30;
 
 /** repeated observers */
-export function repeatedObservers(bridge: ReactiveFramework) {
-  let head = bridge.signal(0);
-  let current = bridge.computed(() => {
+export function repeatedObservers<S>(bridge: ReactiveFramework<S>) {
+  let head = bridge.createSignal(0);
+  let current = bridge.createComputed(() => {
     let result = 0;
     for (let i = 0; i < size; i++) {
       // tbh I think it's meanigless to be this big...
-      result += head.read();
+      result += bridge.readSignal(head) as number;
     }
     return result;
   });
 
   let callCounter = new Counter();
   bridge.effect(() => {
-    current.read();
+    bridge.readComputed(current);
     callCounter.count++;
   });
 
   return () => {
     bridge.withBatch(() => {
-      head.write(1);
+      bridge.writeSignal(head, 1);
     });
-    console.assert(current.read() === size);
+    console.assert(bridge.readComputed(current) === size);
     const atleast = 100;
     callCounter.count = 0;
     for (let i = 0; i < 100; i++) {
       bridge.withBatch(() => {
-        head.write(i);
+        bridge.writeSignal(head, i);
       });
-      console.assert(current.read() === i * size);
+      console.assert(bridge.readComputed(current) === i * size);
     }
     console.assert(callCounter.count === atleast);
   };

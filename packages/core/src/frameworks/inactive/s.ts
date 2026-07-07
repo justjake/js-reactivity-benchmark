@@ -1,21 +1,22 @@
 import { ReactiveFramework } from "../../util/reactiveFramework";
 import S from "s-js";
 
-export const sFramework: ReactiveFramework = {
+// A cell is s-js's own data/computation callable: read via cell(), write
+// via cell(v). No per-cell wrapper is needed.
+type SCell = {
+  (): unknown;
+  (value: unknown): unknown;
+};
+
+export const sFramework: ReactiveFramework<SCell> = {
   name: "s-js",
-  signal: (initial) => {
-    const data = S.value(initial);
-    return {
-      read: () => data(),
-      write: (v) => data(v),
-    };
+  createSignal: (initialValue) => S.value(initialValue) as SCell,
+  readSignal: (s) => s(),
+  writeSignal: (s, value) => {
+    s(value);
   },
-  computed: (fn) => {
-    const computed = S(fn);
-    return {
-      read: () => computed(),
-    };
-  },
+  createComputed: (fn) => S(fn) as SCell,
+  readComputed: (c) => c(),
   effect: (fn) => S(fn),
   withBatch: (fn) => S.freeze(fn),
   withBuild: (fn) =>

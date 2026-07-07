@@ -1,5 +1,8 @@
 import type { FrameworkInfo } from "./util/frameworkTypes";
 import { alienFramework } from "./frameworks/alienSignals";
+import { dalienFramework } from "./frameworks/dalienSignals";
+import { dalienMallocFreeFramework } from "./frameworks/dalienMallocFree";
+import { cosignalFramework } from "./frameworks/cosignal";
 import { angularFramework as angularFramework2 } from "./frameworks/angularSignals2";
 import { compostateFramework } from "./frameworks/inactive/compostate";
 import { mobxFramework } from "./frameworks/inactive/mobx";
@@ -25,6 +28,9 @@ import { xReactivityFramework } from "./frameworks/xReactivity";
 
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: alienFramework, testPullCounts: true },
+  { framework: dalienFramework, testPullCounts: true },
+  { framework: dalienMallocFreeFramework, testPullCounts: true },
+  { framework: cosignalFramework, testPullCounts: true },
   { framework: angularFramework2, testPullCounts: true },
   { framework: compostateFramework, testPullCounts: true },
   { framework: mobxFramework, testPullCounts: true },
@@ -41,6 +47,8 @@ export const frameworkInfo: FrameworkInfo[] = [
 
 export const allFrameworks: FrameworkInfo[] = [
   { framework: alienFramework, testPullCounts: true },
+  { framework: dalienFramework, testPullCounts: true },
+  { framework: cosignalFramework, testPullCounts: true },
   { framework: angularFramework2, testPullCounts: true },
   { framework: compostateFramework, testPullCounts: true },
   { framework: mobxFramework, testPullCounts: true },

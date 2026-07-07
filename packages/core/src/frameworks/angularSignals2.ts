@@ -7,6 +7,8 @@ import {
   ɵChangeDetectionScheduler,
   ɵEffectScheduler,
   untracked,
+  type Signal,
+  type WritableSignal,
 } from "@angular/core";
 
 interface SchedulableEffect {
@@ -52,21 +54,18 @@ const createInjector = () => ({
 
 let injectorObj = createInjector();
 
-export const angularFramework: ReactiveFramework = {
+// A cell is Angular's own signal getter; writable signals carry .set.
+type AngularCell = Signal<unknown>;
+
+export const angularFramework: ReactiveFramework<AngularCell> = {
   name: "Angular Signals",
-  signal: (initialValue) => {
-    const s = signal(initialValue);
-    return {
-      write: (v) => s.set(v),
-      read: () => s(),
-    };
+  createSignal: (initialValue) => signal(initialValue),
+  readSignal: (s) => s(),
+  writeSignal: (s, value) => {
+    (s as WritableSignal<unknown>).set(value);
   },
-  computed: (fn) => {
-    const c = computed(fn);
-    return {
-      read: () => c(),
-    };
-  },
+  createComputed: (fn) => computed(fn),
+  readComputed: (c) => c(),
   effect: (fn) => {
     effect(fn, injectorObj);
   },

@@ -2,35 +2,43 @@ import { Counter } from "../../util/counter";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 
 /** worst case. */
-export function unstable(bridge: ReactiveFramework) {
-  let head = bridge.signal(0);
-  const double = bridge.computed(() => head.read() * 2);
-  const inverse = bridge.computed(() => -head.read());
-  let current = bridge.computed(() => {
+export function unstable<S>(bridge: ReactiveFramework<S>) {
+  let head = bridge.createSignal(0);
+  const double = bridge.createComputed(
+    () => (bridge.readSignal(head) as number) * 2,
+  );
+  const inverse = bridge.createComputed(
+    () => -(bridge.readSignal(head) as number),
+  );
+  let current = bridge.createComputed(() => {
     let result = 0;
     for (let i = 0; i < 20; i++) {
-      result += head.read() % 2 ? double.read() : inverse.read();
+      result += (
+        (bridge.readSignal(head) as number) % 2
+          ? bridge.readComputed(double)
+          : bridge.readComputed(inverse)
+      ) as number;
     }
     return result;
   });
 
   let callCounter = new Counter();
   bridge.effect(() => {
-    current.read();
+    bridge.readComputed(current);
     callCounter.count++;
   });
   return () => {
     bridge.withBatch(() => {
-      head.write(1);
+      bridge.writeSignal(head, 1);
     });
-    console.assert(current.read() === 40);
+    console.assert(bridge.readComputed(current) === 40);
     const atleast = 100;
     callCounter.count = 0;
     for (let i = 0; i < 100; i++) {
       bridge.withBatch(() => {
-        head.write(i);
+        bridge.writeSignal(head, i);
       });
-      // console.assert(current.read() === i % 2 ? i * 2 * 10 : i * -10);
+      // console.assert(bridge.readComputed(current) === i % 2 ? i * 2 * 10 : i * -10);
     }
     console.assert(callCounter.count === atleast);
   };

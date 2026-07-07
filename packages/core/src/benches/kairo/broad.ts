@@ -1,20 +1,20 @@
 import { Counter } from "../../util/counter";
-import { Computed, ReactiveFramework } from "../../util/reactiveFramework";
+import { ReactiveFramework } from "../../util/reactiveFramework";
 
 /** broad propagation */
-export function broadPropagation(bridge: ReactiveFramework) {
-  let head = bridge.signal(0);
-  let last = head as Computed<number>;
+export function broadPropagation<S>(bridge: ReactiveFramework<S>) {
+  let head = bridge.createSignal(0);
+  let last = head;
   let callCounter = new Counter();
   for (let i = 0; i < 50; i++) {
-    let current = bridge.computed(() => {
-      return head.read() + i;
+    let current = bridge.createComputed(() => {
+      return (bridge.readSignal(head) as number) + i;
     });
-    let current2 = bridge.computed(() => {
-      return current.read() + 1;
+    let current2 = bridge.createComputed(() => {
+      return (bridge.readComputed(current) as number) + 1;
     });
     bridge.effect(() => {
-      current2.read();
+      bridge.readComputed(current2);
       callCounter.count++;
     });
     last = current2;
@@ -22,15 +22,15 @@ export function broadPropagation(bridge: ReactiveFramework) {
 
   return () => {
     bridge.withBatch(() => {
-      head.write(1);
+      bridge.writeSignal(head, 1);
     });
     const atleast = 50 * 50;
     callCounter.count = 0;
     for (let i = 0; i < 50; i++) {
       bridge.withBatch(() => {
-        head.write(i);
+        bridge.writeSignal(head, i);
       });
-      console.assert(last.read() === i + 50);
+      console.assert(bridge.readComputed(last) === i + 50);
     }
     console.assert(callCounter.count === atleast, callCounter.count);
   };

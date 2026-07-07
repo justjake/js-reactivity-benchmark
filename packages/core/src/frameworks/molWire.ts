@@ -1,24 +1,26 @@
-import { ReactiveFramework, Signal } from "../util/reactiveFramework";
+import { ReactiveFramework } from "../util/reactiveFramework";
 import $ from "mol_wire_lib";
 
 const Atom = $.$mol_wire_atom; // fix a bug in mol exports
 
+// A cell is a $mol_wire_atom instance; both signals and computeds read via
+// .sync() and atoms accept writes via .put(). No per-cell wrapper is needed.
+type MolWireCell = {
+  put(v: unknown): unknown;
+  sync(): unknown;
+};
+
 let toCleanup: $.$mol_wire_atom<unknown, [], unknown>[] = [];
-export const molWireFramework: ReactiveFramework = {
+export const molWireFramework: ReactiveFramework<MolWireCell> = {
   name: "$mol_wire_atom",
-  signal: <T>(initialValue: T): Signal<T> => {
-    const atom = new Atom("", (next: T = initialValue) => next);
-    return {
-      write: (v: T) => atom.put(v),
-      read: () => atom.sync(),
-    };
+  createSignal: (initialValue) =>
+    new Atom("", (next: unknown = initialValue) => next),
+  readSignal: (s) => s.sync(),
+  writeSignal: (s, value) => {
+    s.put(value);
   },
-  computed: (fn) => {
-    const atom = new Atom("", fn);
-    return {
-      read: () => atom.sync(),
-    };
-  },
+  createComputed: (fn) => new Atom("", fn),
+  readComputed: (c) => c.sync(),
   effect: (fn) => toCleanup.push(new Atom("", fn)),
   withBatch: (fn) => {
     fn();

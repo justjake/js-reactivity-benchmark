@@ -1,21 +1,22 @@
 import { ReactiveFramework } from "../../util/reactiveFramework";
 import $ from "oby";
 
-export const obyFramework: ReactiveFramework = {
+// A cell is oby's own observable callable: read via cell(), write via
+// cell(v). No per-cell wrapper is needed.
+type ObyCell = {
+  (): unknown;
+  (value: unknown): unknown;
+};
+
+export const obyFramework: ReactiveFramework<ObyCell> = {
   name: "Oby",
-  signal: (initialValue) => {
-    const observable = $(initialValue);
-    return {
-      write: (v) => observable(v),
-      read: () => observable(),
-    };
+  createSignal: (initialValue) => $(initialValue) as ObyCell,
+  readSignal: (s) => s(),
+  writeSignal: (s, value) => {
+    s(value);
   },
-  computed: (fn) => {
-    const memo = $.memo(fn);
-    return {
-      read: () => memo(),
-    };
-  },
+  createComputed: (fn) => $.memo(fn) as ObyCell,
+  readComputed: (c) => c(),
   effect: (fn) => $.effect(fn),
   withBatch: (fn) => {
     fn();

@@ -8,23 +8,23 @@ import {
 } from "@vue/reactivity";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 
+// A cell is vue's own ref or computed ref; both read through .value.
+// No per-cell wrapper is needed.
+type VueCell = {
+  value: unknown;
+};
+
 let scheduled = [] as ReactiveEffect[];
 let scope: EffectScope | null = null;
-export const vueReactivityFramework: ReactiveFramework = {
+export const vueReactivityFramework: ReactiveFramework<VueCell> = {
   name: "Vue",
-  signal: (initial) => {
-    const data = shallowRef(initial);
-    return {
-      read: () => data.value as any,
-      write: (v) => (data.value = v as any),
-    };
+  createSignal: (initialValue) => shallowRef(initialValue),
+  readSignal: (s) => s.value,
+  writeSignal: (s, value) => {
+    s.value = value;
   },
-  computed: (fn) => {
-    const c = computed(fn);
-    return {
-      read: () => c.value,
-    };
-  },
+  createComputed: (fn) => computed(fn),
+  readComputed: (c) => c.value,
   effect: (fn) => {
     let t = effect(fn, {
       scheduler: () => {

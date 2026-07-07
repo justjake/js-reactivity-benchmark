@@ -7,7 +7,7 @@ import { repeatedObservers } from "./kairo/repeated";
 import { triangle } from "./kairo/triangle";
 import { unstable } from "./kairo/unstable";
 import { nextTick } from "../util/asyncUtil";
-import { fastestTest } from "../util/benchRepeat";
+import { medianTest } from "../util/benchRepeat";
 import { PerfResultCallback } from "../util/perfLogging";
 import { FrameworkInfo } from "../util/frameworkTypes";
 import { mol } from "./kairo/molBench";
@@ -61,7 +61,7 @@ export async function kairoBench(
       iter();
       await nextTick();
 
-      const { time } = await fastestTest(10, () => {
+      const { time } = await medianTest(10, () => {
         for (let i = 0; i < 500; i++) {
           iter();
         }

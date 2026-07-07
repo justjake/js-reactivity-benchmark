@@ -44,9 +44,11 @@ export interface TestConfig {
   expected: Partial<TestResult>;
 }
 
-export interface FrameworkInfo {
-  /** wrapper/adapter for a benchmarking a reactive framework */
-  framework: ReactiveFramework;
+/** S defaults to any because framework rosters mix adapters with different
+ * cell representations. */
+export interface FrameworkInfo<S = any> {
+  /** adapter for benchmarking a reactive framework */
+  framework: ReactiveFramework<S>;
 
   /** verify the number of nodes executed matches the expected number */
   testPullCounts?: boolean;

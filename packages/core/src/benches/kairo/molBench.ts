@@ -11,39 +11,73 @@ function hard(n: number, _log: string) {
 
 const numbers = Array.from({ length: 5 }, (_, i) => i);
 
-export function mol(framework: ReactiveFramework) {
-  let res = [];
-  const A = framework.signal(0);
-  const B = framework.signal(0);
-  const C = framework.computed(() => (A.read() % 2) + (B.read() % 2));
-  const D = framework.computed(() =>
-    numbers.map((i) => ({ x: i + (A.read() % 2) - (B.read() % 2) })),
+/** the value type of computed D below */
+type Points = { x: number }[];
+
+export function mol<S>(framework: ReactiveFramework<S>) {
+  let res: number[] = [];
+  const A = framework.createSignal(0);
+  const B = framework.createSignal(0);
+  const C = framework.createComputed(
+    () =>
+      ((framework.readSignal(A) as number) % 2) +
+      ((framework.readSignal(B) as number) % 2),
   );
-  const E = framework.computed(() =>
-    hard(C.read() + A.read() + D.read()[0].x, "E"),
+  const D = framework.createComputed(() =>
+    numbers.map((i) => ({
+      x:
+        i +
+        ((framework.readSignal(A) as number) % 2) -
+        ((framework.readSignal(B) as number) % 2),
+    })),
   );
-  const F = framework.computed(() => hard(D.read()[2].x || B.read(), "F"));
-  const G = framework.computed(
-    () => C.read() + (C.read() || E.read() % 2) + D.read()[4].x + F.read(),
+  const E = framework.createComputed(() =>
+    hard(
+      (framework.readComputed(C) as number) +
+        (framework.readSignal(A) as number) +
+        (framework.readComputed(D) as Points)[0].x,
+      "E",
+    ),
+  );
+  const F = framework.createComputed(() =>
+    hard(
+      (framework.readComputed(D) as Points)[2].x ||
+        (framework.readSignal(B) as number),
+      "F",
+    ),
+  );
+  const G = framework.createComputed(
+    () =>
+      (framework.readComputed(C) as number) +
+      ((framework.readComputed(C) as number) ||
+        (framework.readComputed(E) as number) % 2) +
+      (framework.readComputed(D) as Points)[4].x +
+      (framework.readComputed(F) as number),
   );
   // H:
-  framework.effect(() => res.push(hard(G.read(), "H")));
+  framework.effect(() => {
+    res.push(hard(framework.readComputed(G) as number, "H"));
+  });
   // I:
-  framework.effect(() => res.push(G.read()));
+  framework.effect(() => {
+    res.push(framework.readComputed(G) as number);
+  });
   // J:
-  framework.effect(() => res.push(hard(F.read(), "J")));
+  framework.effect(() => {
+    res.push(hard(framework.readComputed(F) as number, "J"));
+  });
 
   let i = 0;
   return () => {
     i++;
     res.length = 0;
     framework.withBatch(() => {
-      B.write(1);
-      A.write(1 + i * 2);
+      framework.writeSignal(B, 1);
+      framework.writeSignal(A, 1 + i * 2);
     });
     framework.withBatch(() => {
-      A.write(2 + i * 2);
-      B.write(2);
+      framework.writeSignal(A, 2 + i * 2);
+      framework.writeSignal(B, 2);
     });
   };
 }

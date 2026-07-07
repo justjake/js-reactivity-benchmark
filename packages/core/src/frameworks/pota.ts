@@ -7,21 +7,28 @@ import {
   signal as createSignal,
 } from "pota";
 
-export const potaFramework: ReactiveFramework = {
+// A cell is pota's own accessor function. signal() returns a [get, set]
+// pair; the setter rides along as a property on the getter so the pair is
+// not retained and every read stays a bare call.
+type PotaCell = {
+  (): unknown;
+  set?: (v: unknown) => void;
+};
+
+export const potaFramework: ReactiveFramework<PotaCell> = {
   name: "Pota",
-  signal: (initialValue) => {
+  createSignal: (initialValue) => {
     const [getter, setter] = createSignal(initialValue);
-    return {
-      write: (v) => setter(v as any),
-      read: () => getter(),
-    };
+    const cell = getter as PotaCell;
+    cell.set = setter as (v: unknown) => void;
+    return cell;
   },
-  computed: (fn) => {
-    const memo = createMemo(fn);
-    return {
-      read: () => memo(),
-    };
+  readSignal: (s) => s(),
+  writeSignal: (s, value) => {
+    s.set!(value);
   },
+  createComputed: (fn) => createMemo(fn),
+  readComputed: (c) => c(),
   effect: (fn) => createEffect(fn),
   withBatch: (fn) => batch(fn),
   withBuild: (fn) =>

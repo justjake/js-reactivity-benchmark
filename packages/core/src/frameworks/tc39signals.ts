@@ -1,23 +1,21 @@
 import { ReactiveFramework } from "../util/reactiveFramework";
 import { Signal } from "signal-polyfill";
 
+// A cell is the polyfill's own State or Computed instance; both read via
+// .get(). No per-cell wrapper is needed.
+type Tc39Cell = Signal.State<unknown> | Signal.Computed<unknown>;
+
 let toCleanup: (() => void)[] = [];
-export const tc39SignalsFramework: ReactiveFramework = {
+export const tc39SignalsFramework: ReactiveFramework<Tc39Cell> = {
   name: "TC39 Signals",
-  signal: (initialValue) => {
-    const s = new Signal.State(initialValue);
-    return {
-      write: (v) => s.set(v),
-      read: () => s.get(),
-    };
+  createSignal: (initialValue) => new Signal.State(initialValue),
+  readSignal: (s) => s.get(),
+  writeSignal: (s, value) => {
+    (s as Signal.State<unknown>).set(value);
   },
-  computed: (fn) => {
-    const c = new Signal.Computed(fn);
-    return {
-      read: () => c.get(),
-    };
-  },
-  effect: (callback: any) => {
+  createComputed: (fn) => new Signal.Computed(fn),
+  readComputed: (c) => c.get(),
+  effect: (callback) => {
     const computed = new Signal.Computed(() => callback());
 
     w.watch(computed);

@@ -2,37 +2,53 @@
 import { nextTick } from "../util/asyncUtil";
 import { FrameworkInfo } from "../util/frameworkTypes";
 import { PerfResultCallback } from "../util/perfLogging";
-import { Computed, ReactiveFramework } from "../util/reactiveFramework";
+import { ReactiveFramework } from "../util/reactiveFramework";
 
-const cellx = (framework: ReactiveFramework, layers: number) => {
+const cellx = <S>(framework: ReactiveFramework<S>, layers: number) => {
   const iter = framework.withBuild(() => {
     const start = {
-      prop1: framework.signal(1),
-      prop2: framework.signal(2),
-      prop3: framework.signal(3),
-      prop4: framework.signal(4),
+      prop1: framework.createSignal(1),
+      prop2: framework.createSignal(2),
+      prop3: framework.createSignal(3),
+      prop4: framework.createSignal(4),
     };
 
     let layer: {
-      prop1: Computed<number>;
-      prop2: Computed<number>;
-      prop3: Computed<number>;
-      prop4: Computed<number>;
+      prop1: S;
+      prop2: S;
+      prop3: S;
+      prop4: S;
     } = start;
 
     for (let i = layers; i > 0; i--) {
       const m = layer;
       const s = {
-        prop1: framework.computed(() => m.prop2.read()),
-        prop2: framework.computed(() => m.prop1.read() - m.prop3.read()),
-        prop3: framework.computed(() => m.prop2.read() + m.prop4.read()),
-        prop4: framework.computed(() => m.prop3.read()),
+        prop1: framework.createComputed(() => framework.readComputed(m.prop2)),
+        prop2: framework.createComputed(
+          () =>
+            (framework.readComputed(m.prop1) as number) -
+            (framework.readComputed(m.prop3) as number),
+        ),
+        prop3: framework.createComputed(
+          () =>
+            (framework.readComputed(m.prop2) as number) +
+            (framework.readComputed(m.prop4) as number),
+        ),
+        prop4: framework.createComputed(() => framework.readComputed(m.prop3)),
       };
 
-      framework.effect(() => s.prop1.read());
-      framework.effect(() => s.prop2.read());
-      framework.effect(() => s.prop3.read());
-      framework.effect(() => s.prop4.read());
+      framework.effect(() => {
+        framework.readComputed(s.prop1);
+      });
+      framework.effect(() => {
+        framework.readComputed(s.prop2);
+      });
+      framework.effect(() => {
+        framework.readComputed(s.prop3);
+      });
+      framework.effect(() => {
+        framework.readComputed(s.prop4);
+      });
 
       layer = s;
     }
@@ -43,24 +59,24 @@ const cellx = (framework: ReactiveFramework, layers: number) => {
       const startTime = performance.now();
 
       const before = [
-        end.prop1.read(),
-        end.prop2.read(),
-        end.prop3.read(),
-        end.prop4.read(),
+        framework.readComputed(end.prop1) as number,
+        framework.readComputed(end.prop2) as number,
+        framework.readComputed(end.prop3) as number,
+        framework.readComputed(end.prop4) as number,
       ] as const;
 
       framework.withBatch(() => {
-        start.prop1.write(4);
-        start.prop2.write(3);
-        start.prop3.write(2);
-        start.prop4.write(1);
+        framework.writeSignal(start.prop1, 4);
+        framework.writeSignal(start.prop2, 3);
+        framework.writeSignal(start.prop3, 2);
+        framework.writeSignal(start.prop4, 1);
       });
 
       const after = [
-        end.prop1.read(),
-        end.prop2.read(),
-        end.prop3.read(),
-        end.prop4.read(),
+        framework.readComputed(end.prop1) as number,
+        framework.readComputed(end.prop2) as number,
+        framework.readComputed(end.prop3) as number,
+        framework.readComputed(end.prop4) as number,
       ] as const;
 
       const endTime = performance.now();

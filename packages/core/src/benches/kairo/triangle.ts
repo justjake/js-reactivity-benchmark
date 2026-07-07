@@ -1,42 +1,44 @@
 import { Counter } from "../../util/counter";
-import { Computed, ReactiveFramework } from "../../util/reactiveFramework";
+import { ReactiveFramework } from "../../util/reactiveFramework";
 
 let width = 10;
 
-export function triangle(bridge: ReactiveFramework) {
-  let head = bridge.signal(0);
-  let current = head as Computed<number>;
-  let list: Computed<number>[] = [];
+export function triangle<S>(bridge: ReactiveFramework<S>) {
+  let head = bridge.createSignal(0);
+  let current = head;
+  let list: S[] = [];
   for (let i = 0; i < width; i++) {
     let c = current;
     list.push(current);
-    current = bridge.computed(() => {
-      return c.read() + 1;
+    current = bridge.createComputed(() => {
+      return (bridge.readComputed(c) as number) + 1;
     });
   }
-  let sum = bridge.computed(() => {
-    return list.map((x) => x.read()).reduce((a, b) => a + b, 0);
+  let sum = bridge.createComputed(() => {
+    return list
+      .map((x) => bridge.readComputed(x) as number)
+      .reduce((a, b) => a + b, 0);
   });
 
   let callCounter = new Counter();
   bridge.effect(() => {
-    sum.read();
+    bridge.readComputed(sum);
     callCounter.count++;
   });
 
   return () => {
     const constant = count(width);
     bridge.withBatch(() => {
-      head.write(1);
+      bridge.writeSignal(head, 1);
     });
-    console.assert(sum.read() === constant);
+    console.assert(bridge.readComputed(sum) === constant);
     const atleast = 100;
     callCounter.count = 0;
     for (let i = 0; i < 100; i++) {
       bridge.withBatch(() => {
-        head.write(i);
+        bridge.writeSignal(head, i);
       });
-      console.assert(sum.read() === constant - width + i * width);
+      console.assert(bridge.readComputed(sum) === constant - width + i * width);
     }
     console.assert(callCounter.count === atleast);
   };
