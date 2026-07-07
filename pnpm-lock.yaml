@@ -13,6 +13,16 @@ importers:
         version: 3.8.1
 
   packages/core:
+    dependencies:
+      '@tldraw/state':
+        specifier: 5.2.2
+        version: 5.2.2
+      anod:
+        specifier: 0.9.1
+        version: 0.9.1
+      solid-js-2:
+        specifier: npm:solid-js@2.0.0-beta.15
+        version: solid-js@2.0.0-beta.15
     devDependencies:
       '@amadeus-it-group/tansu':
         specifier: ^2.0.0
@@ -793,6 +803,9 @@ packages:
   '@solidjs/signals@0.10.2':
     resolution: {integrity: sha512-VOohKbc8D3l+QSOKdeCNbQB/VdE8x1IBChvjXl5urZ8wqbx4RVxC8StjQvGAjNnaDEu8fpWol9LLtyp3CscVXg==}
 
+  '@solidjs/signals@2.0.0-beta.15':
+    resolution: {integrity: sha512-lw4a4frNajnmVjILbyfrgJ4ksqU+YKhkepZ8glKK9Q68O3zq7W8qDLOtsz5v1mt0o3TB11/rozJFpgMTmnYegg==}
+
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
@@ -803,6 +816,14 @@ packages:
 
   '@tanstack/store@0.11.0':
     resolution: {integrity: sha512-WlzzCt3xi0G6pCAJu1U+2jiECwabETDpQDi3hfkFZvJii9AuZqEKbOiVarX1/bWhTNjU486yQtJCCasi/0q+Cw==}
+
+  '@tldraw/state@5.2.2':
+    resolution: {integrity: sha512-BBii1HNspHnrUG3QARuFhHejRDKID/CtYHnrlGHD/x0PPb40xud+5hW0wkuzrdZOZvd/VEMpz6kXufIdqyVBYQ==}
+    engines: {node: '>=22.12.0'}
+
+  '@tldraw/utils@5.2.2':
+    resolution: {integrity: sha512-TifV6LePp5eGWbT65Jo0RJHjABRnv6ZzJg/BBOEr0Km98UJl15uvuOwmO1zKeII3SQkUP6+n0VEP4x8O174UfA==}
+    engines: {node: '>=22.12.0'}
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -864,6 +885,9 @@ packages:
 
   alien-signals@file:../upstream-alien-signals:
     resolution: {directory: ../upstream-alien-signals, type: directory}
+
+  anod@0.9.1:
+    resolution: {integrity: sha512-J3Rw8vYEw8EZfFyCHM43C95ozidIoOV4ai9cQvvkWV3UbdKUfjjqDq4T0uOHEdBDPcqzwBRhI88uvhktXoaFVA==}
 
   aria-query@5.3.2:
     resolution: {integrity: sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw==}
@@ -1086,6 +1110,19 @@ packages:
   locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
 
+  lodash.isequal@4.5.0:
+    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+
+  lodash.isequalwith@4.4.0:
+    resolution: {integrity: sha512-dcZON0IalGBpRmJBmMkaoV7d3I80R2O+FrzsZyHdNSFrANq/cgDqKQNmAHE8UEj4+QYWwwhkQOVdLHiAopzlsQ==}
+
+  lodash.throttle@4.1.1:
+    resolution: {integrity: sha512-wIkUCfVKpVsWo3JSZlc+8MB5it+2AN5W8J7YVMST30UrvcQNZ1Okbj+rbVniijTWE6FGYy4XJq/rHkas8qJMLQ==}
+
+  lodash.uniq@4.5.0:
+    resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
+
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
@@ -1185,6 +1222,9 @@ packages:
 
   solid-js@1.9.11:
     resolution: {integrity: sha512-WEJtcc5mkh/BnHA6Yrg4whlF8g6QwpmXXRg4P2ztPmcKeHHlH4+djYecBLhSpecZY2RRECXYUwIc/C2r3yzQ4Q==}
+
+  solid-js@2.0.0-beta.15:
+    resolution: {integrity: sha512-3hvcmEFUgDlahc++/ulrPhnc5IM7aJbW1P4TUaKsMZpDY5qGcOagtL4nbXGdUPnVP0JsJhMuE9bXEcLdLE+2SA==}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -1838,6 +1878,8 @@ snapshots:
 
   '@solidjs/signals@0.10.2': {}
 
+  '@solidjs/signals@2.0.0-beta.15': {}
+
   '@standard-schema/spec@1.1.0': {}
 
   '@sveltejs/acorn-typescript@1.0.9(acorn@8.15.0)':
@@ -1845,6 +1887,17 @@ snapshots:
       acorn: 8.15.0
 
   '@tanstack/store@0.11.0': {}
+
+  '@tldraw/state@5.2.2':
+    dependencies:
+      '@tldraw/utils': 5.2.2
+
+  '@tldraw/utils@5.2.2':
+    dependencies:
+      lodash.isequal: 4.5.0
+      lodash.isequalwith: 4.4.0
+      lodash.throttle: 4.1.1
+      lodash.uniq: 4.5.0
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
@@ -1914,6 +1967,8 @@ snapshots:
   acorn@8.15.0: {}
 
   alien-signals@file:../upstream-alien-signals: {}
+
+  anod@0.9.1: {}
 
   aria-query@5.3.2: {}
 
@@ -2111,6 +2166,14 @@ snapshots:
 
   locate-character@3.0.0: {}
 
+  lodash.isequal@4.5.0: {}
+
+  lodash.isequalwith@4.4.0: {}
+
+  lodash.throttle@4.1.1: {}
+
+  lodash.uniq@4.5.0: {}
+
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
@@ -2232,6 +2295,13 @@ snapshots:
 
   solid-js@1.9.11:
     dependencies:
+      csstype: 3.2.3
+      seroval: 1.5.0
+      seroval-plugins: 1.5.0(seroval@1.5.0)
+
+  solid-js@2.0.0-beta.15:
+    dependencies:
+      '@solidjs/signals': 2.0.0-beta.15
       csstype: 3.2.3
       seroval: 1.5.0
       seroval-plugins: 1.5.0(seroval@1.5.0)

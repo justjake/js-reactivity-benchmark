@@ -39,5 +39,10 @@
     "usignal": "^0.10.0",
     "vitest": "^4.0.18"
   },
-  "packageManager": "pnpm@10.29.3"
+  "packageManager": "pnpm@10.29.3",
+  "dependencies": {
+    "@tldraw/state": "5.2.2",
+    "anod": "0.9.1",
+    "solid-js-2": "npm:solid-js@2.0.0-beta.15"
+  }
 }
