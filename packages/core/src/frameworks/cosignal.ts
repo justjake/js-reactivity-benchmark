@@ -1,7 +1,8 @@
-import * as lib from "cosignal";
+import * as lib from "cosignals";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
-// cosignal v1 DIRECT build, routed through the public class API (Atom /
+// cosignals (the parent repo renamed cosignal -> cosignals when the engine
+// variants merged), routed through the public class API (Atom /
 // Computed `.state` and `.set`) so the benchmark measures the surface
 // applications use, policy wrapper included. Graphs are built inside an
 // effectScope and disposed in cleanup(), like the other adapters.

@@ -3,6 +3,8 @@ import { alienFramework } from "./frameworks/alienSignals";
 import { dalienFramework } from "./frameworks/dalienSignals";
 import { dalienMallocFreeFramework } from "./frameworks/dalienMallocFree";
 import { cosignalFramework } from "./frameworks/cosignal";
+import { cosignalAltAFramework } from "./frameworks/cosignalAltA";
+import { cosignalAltBFramework } from "./frameworks/cosignalAltB";
 import { angularFramework as angularFramework2 } from "./frameworks/angularSignals2";
 import { compostateFramework } from "./frameworks/inactive/compostate";
 import { mobxFramework } from "./frameworks/inactive/mobx";
@@ -32,6 +34,8 @@ export const frameworkInfo: FrameworkInfo[] = [
   { framework: dalienFramework, testPullCounts: true },
   { framework: dalienMallocFreeFramework, testPullCounts: true },
   { framework: cosignalFramework, testPullCounts: true },
+  { framework: cosignalAltAFramework, testPullCounts: true },
+  { framework: cosignalAltBFramework, testPullCounts: true },
   { framework: angularFramework2, testPullCounts: true },
   { framework: compostateFramework, testPullCounts: true },
   { framework: mobxFramework, testPullCounts: true },
@@ -51,6 +55,8 @@ export const allFrameworks: FrameworkInfo[] = [
   { framework: alienFramework, testPullCounts: true },
   { framework: dalienFramework, testPullCounts: true },
   { framework: cosignalFramework, testPullCounts: true },
+  { framework: cosignalAltAFramework, testPullCounts: true },
+  { framework: cosignalAltBFramework, testPullCounts: true },
   { framework: angularFramework2, testPullCounts: true },
   { framework: compostateFramework, testPullCounts: true },
   { framework: mobxFramework, testPullCounts: true },

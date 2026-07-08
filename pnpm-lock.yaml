@@ -51,9 +51,15 @@ importers:
       compostate:
         specifier: ^0.5.1
         version: 0.5.1
-      cosignal:
-        specifier: file:../../../packages/cosignal
-        version: file:../packages/cosignal
+      cosignals:
+        specifier: file:../../../packages/cosignals
+        version: file:../packages/cosignals
+      cosignals-alt-a:
+        specifier: file:../../../packages/cosignals-alt-a
+        version: file:../packages/cosignals-alt-a
+      cosignals-alt-b:
+        specifier: file:../../../packages/cosignals-alt-b
+        version: file:../packages/cosignals-alt-b
       dalien-signals:
         specifier: file:../../../packages/dalien-signals
         version: file:../packages/dalien-signals
@@ -937,8 +943,14 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  cosignal@file:../packages/cosignal:
-    resolution: {directory: ../packages/cosignal, type: directory}
+  cosignals-alt-a@file:../packages/cosignals-alt-a:
+    resolution: {directory: ../packages/cosignals-alt-a, type: directory}
+
+  cosignals-alt-b@file:../packages/cosignals-alt-b:
+    resolution: {directory: ../packages/cosignals-alt-b, type: directory}
+
+  cosignals@file:../packages/cosignals:
+    resolution: {directory: ../packages/cosignals, type: directory}
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -2004,7 +2016,11 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cosignal@file:../packages/cosignal: {}
+  cosignals-alt-a@file:../packages/cosignals-alt-a: {}
+
+  cosignals-alt-b@file:../packages/cosignals-alt-b: {}
+
+  cosignals@file:../packages/cosignals: {}
 
   csstype@3.2.3: {}
 
