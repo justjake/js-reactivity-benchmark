@@ -14,6 +14,44 @@ $ pnpm bench
 - Tracks garbage collection overhead per test
 - Outputs a csv file for easy integration with other tools.
 
+## Memory statistics
+
+The isolated runner (`packages/node/dist/isolated.js`) reports per-test memory columns
+alongside the timing column. Every memory number is built from the triple
+`heapUsed + external + arrayBuffers` (reported as components and as their `total`), because
+a framework that stores its graph in ArrayBuffers is invisible to `heapUsed` while a framework
+that stores its graph as JS objects is the inverse — the total is the only number where both
+designs are comparable. Memory collection is split so it cannot perturb the timing rows: passive
+observation rides the real timed runs, and anything that needs forced GC happens in a separate pass.
+
+- **GC pauses** (`gcMinorN/Ms`, `gcMajorN/Ms`, `gcIncrN/Ms`, `gcWeakN/Ms`): count and total
+  duration per GC kind from a `PerformanceObserver({ entryTypes: ["gc"] })` in each child
+  process, collected during the real timed runs — no forced GC, so these describe honest
+  conditions. Medians across rounds, like the times.
+- **Peaks** (`peakHeapMb`, `peakExtMb`, `peakArrMb`, `peakTotalMb`, `peakRssMb`): maxima of
+  `process.memoryUsage()` sampled at GC events, at test boundaries, and on a coarse 75 ms
+  interval. RSS is a cross-check only (it includes code, stacks, and allocator slack).
+  Peaks track live-set highs; transient garbage between samples is not visible from JS.
+- **Retained floors** (`floorMb`, `floorDeltaMb`, filled by `--memory`): one extra pass per
+  framework with `--expose-gc`, forcing a double GC at every test boundary and measuring what
+  survives after cleanup. `floorDeltaMb` is the floor minus the pre-suite baseline: flat means
+  leak-free, a monotonic climb across tests is a leak (or unreleased arena growth). Timing from
+  this pass is discarded — forced GC perturbs it by design.
+- **Deep mode** (`--deep-memory`, opt-in): bisects the minimum `--max-old-space-size` at which a
+  representative creation-heavy suite completes. Caveat: the old-space cap governs only the V8
+  JS heap — ArrayBuffer backing stores live outside it — so this under-measures arena designs.
+  That is why it is not the headline number; `peakTotalMb` is.
+- **Attribution**: stats are deltas since the previous CSV row in the same child process; suite
+  warmups are billed to the suite's first row (every framework pays the same structure).
+- **A/B knob**: `--no-memory` restores the exact legacy 3-column CSV with all instrumentation off,
+  for verifying that the observer does not move timing medians.
+- **Bun**: Bun has no `gc` performance entry type, so GC pause columns are empty there; peaks and
+  floors still work through `process.memoryUsage()`. Node is the supported runtime for the full
+  column set.
+
+Consumers that only want timing keep reading the first three columns (`framework, test, time`);
+the memory columns are strictly additive.
+
 Current reactivity benchmarks ([S.js](https://github.com/adamhaile/S/blob/master/bench/bench.js), [CellX](https://github.com/Riim/cellx/blob/master/perf/perf.html)) are focused on creation time, and update time for a static graph. Additionally, existing benchmarks aren't very configurable, and don't test for dynamic dependencies. We've created a new benchmark that allows library authors to compare their frameworks against each other, and against the existing benchmarks, as well as against a new configurable benchmark with dynamically changing sources.
 
 We're also working on enabling consistent logging and efficient tracking of GC time across all benchmarks.

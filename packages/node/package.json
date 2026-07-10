@@ -1,8 +1,9 @@
 {
   "name": "js-reactivity-benchmark-node",
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --format=esm --target=esnext --outdir=dist --sourcemap=external",
+    "build": "esbuild src/index.ts src/isolated.ts --bundle --format=esm --platform=node --target=esnext --outdir=dist --sourcemap=external",
     "run": "node dist/index.js"
   },
   "dependencies": {

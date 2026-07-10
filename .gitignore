@@ -4,3 +4,4 @@ dist/
 chrome/
 public/dist/
 isolates-*
+*.cpuprofile
