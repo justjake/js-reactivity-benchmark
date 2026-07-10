@@ -26,6 +26,7 @@
     "cosignals": "file:../../../packages/cosignals",
     "cosignals-alt-a": "file:../../../packages/cosignals-alt-a",
     "cosignals-alt-b": "file:../../../packages/cosignals-alt-b",
+    "signals-royale-fx2": "file:../../../packages/signals-royale-fx2",
     "compostate": "^0.5.1",
     "esbuild": "^0.27.3",
     "mobx": "^6.15.0",
