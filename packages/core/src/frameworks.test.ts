@@ -2,8 +2,24 @@ import { makeGraph, runGraph } from "./benches/reactively/dependencyGraph";
 import { expect, test } from "vitest";
 import { FrameworkInfo, TestConfig } from "./util/frameworkTypes";
 import { frameworkInfo } from "./frameworksList";
+import { lazyFrameworkInfo } from "./frameworksLazy";
 
 frameworkInfo.forEach((frameworkInfo) => frameworkTests(frameworkInfo));
+
+// frameworksLazy duplicates each adapter's name as a literal (importing the
+// adapter to read its name would defeat the lazy loading). Pin the copies
+// together: every lazy entry must load an adapter with the same name, and
+// the lazy registry must cover exactly the active frameworkInfo list.
+test("lazyFrameworkInfo mirrors frameworkInfo", async () => {
+  const eagerNames = frameworkInfo.map((f) => f.framework.name);
+  const lazyNames = lazyFrameworkInfo.map((f) => f.name);
+  expect(lazyNames).toEqual(eagerNames);
+  for (const [i, entry] of lazyFrameworkInfo.entries()) {
+    const loaded = await entry.load();
+    expect(loaded.framework.name).toBe(entry.name);
+    expect(loaded.testPullCounts).toBe(frameworkInfo[i].testPullCounts);
+  }
+});
 
 function makeConfig(): TestConfig {
   return {

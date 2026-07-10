@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ESNext", "DOM"],
     "types": ["./src/frameworks/solid-types.d.ts"],
