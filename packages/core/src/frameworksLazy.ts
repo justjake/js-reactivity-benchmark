@@ -78,6 +78,14 @@ export const lazyFrameworkInfo: LazyFrameworkInfo[] = [
     }),
   },
   {
+    name: "Royale FX2 Dalien",
+    load: async () => ({
+      framework: (await import("./frameworks/royaleFx2Dalien"))
+        .royaleFx2DalienFramework,
+      testPullCounts: true,
+    }),
+  },
+  {
     name: "Angular Signals",
     load: async () => ({
       framework: (await import("./frameworks/angularSignals2"))

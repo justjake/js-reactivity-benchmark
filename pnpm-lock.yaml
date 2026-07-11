@@ -93,6 +93,9 @@ importers:
       signals-royale-fx2:
         specifier: file:../../../packages/signals-royale-fx2
         version: file:../packages/signals-royale-fx2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      signals-royale-fx2-dalien:
+        specifier: file:../../../packages/signals-royale-fx2-dalien
+        version: file:../packages/signals-royale-fx2-dalien(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       solid-js:
         specifier: ^1.9.11
         version: 1.9.11
@@ -1253,6 +1256,12 @@ packages:
   signal-polyfill@0.2.2:
     resolution: {integrity: sha512-p63Y4Er5/eMQ9RHg0M0Y64NlsQKpiu6MDdhBXpyywRuWiPywhJTpKJ1iB5K2hJEbFZ0BnDS7ZkJ+0AfTuL37Rg==}
 
+  signals-royale-fx2-dalien@file:../packages/signals-royale-fx2-dalien:
+    resolution: {directory: ../packages/signals-royale-fx2-dalien, type: directory}
+    peerDependencies:
+      react: '>=19.0.0'
+      react-dom: '>=19.0.0'
+
   signals-royale-fx2@file:../packages/signals-royale-fx2:
     resolution: {directory: ../packages/signals-royale-fx2, type: directory}
     peerDependencies:
@@ -2350,6 +2359,11 @@ snapshots:
   siginfo@2.0.0: {}
 
   signal-polyfill@0.2.2: {}
+
+  signals-royale-fx2-dalien@file:../packages/signals-royale-fx2-dalien(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+    dependencies:
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
 
   signals-royale-fx2@file:../packages/signals-royale-fx2(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
