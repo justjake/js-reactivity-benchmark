@@ -43,8 +43,11 @@ export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
     return out;
   },
   cleanup: () => {
+    // Scope disposal reclaims synchronously (records return to free stacks;
+    // cell records detach at last unlink), so no arena wipe is needed between
+    // cases — matching the object-graph adapter, whose cleanup is disposal
+    // alone.
     disposeScope?.();
     disposeScope = null;
-    resetGraphForBenchmark();
   },
 };
