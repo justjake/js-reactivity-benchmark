@@ -1,33 +1,36 @@
 import {
   batch,
-  computed,
+  createAtom,
+  createComputed,
   effect,
   effectScope,
-  resetGraphForBenchmark,
-  Signal,
+  installState,
+  type Atom,
   type Computed,
+  type Signal,
 } from "signals-royale-fx2-dalien";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
-type Cell = Signal<unknown> | Computed<unknown>;
+type Cell = Signal<unknown>;
 
 let disposeScope: (() => void) | null = null;
 
 export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
   name: "Royale FX2 Dalien",
   createSignal: (initialValue) => {
-    const s = new Signal(initialValue, undefined);
+    const s = createAtom(initialValue);
     if (typeof initialValue === "function") {
-      s.node.initializer = undefined;
-      s.node.value = initialValue;
+      // The benchmark stores plain values; opt out of lazy-initializer
+      // treatment for function-valued ones.
+      installState(s, initialValue);
     }
     return s;
   },
-  readSignal: (s) => (s as Signal<unknown>).get(),
+  readSignal: (s) => (s as Atom<unknown>).get(),
   writeSignal: (s, value) => {
-    (s as Signal<unknown>).set(value);
+    (s as Atom<unknown>).set(value);
   },
-  createComputed: (fn) => computed(fn),
+  createComputed: (fn) => createComputed(fn),
   readComputed: (cell) => (cell as Computed<unknown>).get(),
   effect: (fn) => {
     effect(fn);
