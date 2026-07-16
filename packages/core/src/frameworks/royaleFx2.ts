@@ -4,11 +4,11 @@ import {
   createComputed,
   effect,
   effectScope,
-  installState,
   type Atom,
   type Computed,
   type Signal,
 } from "signals-royale-fx2";
+import { installState } from "signals-royale-fx2/ssr";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
 // signals-royale-fx2: the productionized Signals Royale champion (forkless

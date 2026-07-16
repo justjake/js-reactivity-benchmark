@@ -4,16 +4,19 @@ import {
   createComputed,
   effect,
   effectScope,
-  installState,
   type Atom,
   type Computed,
   type Signal,
 } from "signals-royale-fx2-dalien";
+import { installState } from "signals-royale-fx2-dalien/ssr";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
 type Cell = Signal<unknown>;
 
 let disposeScope: (() => void) | null = null;
+
+const NEVER_EQUAL = (): boolean => false;
+const NOOP_HANDLER = (): void => {};
 
 export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
   name: "Royale FX2 Dalien",
@@ -33,7 +36,11 @@ export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
   createComputed: (fn) => createComputed(fn),
   readComputed: (cell) => (cell as Computed<unknown>).get(),
   effect: (fn) => {
-    effect(fn);
+    // The fork's effect is a pure tracked compute plus an untracked handler,
+    // like the source package. The benchmark's effect is a single tracked
+    // body that reads and counts but never writes signals, so it runs as
+    // the compute; never-equal delivery keeps one handler run per re-run.
+    effect(fn, NOOP_HANDLER, { equals: NEVER_EQUAL });
   },
   withBatch: (fn) => {
     batch(fn);
