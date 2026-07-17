@@ -7,14 +7,10 @@ import {
   type Atom,
   type Computed,
   type Signal,
-} from "signals-royale-fx2";
-import { installState } from "signals-royale-fx2/ssr";
+} from "cosignals-arena";
+import { installState } from "cosignals-arena/ssr";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
-// signals-royale-fx2: the productionized Signals Royale champion (forkless
-// concurrent React signals; two-tier watched/unwatched graph). Routed
-// through the public Atom API. Graphs are built inside an effectScope and
-// disposed in cleanup(), like the other adapters.
 type Cell = Signal<unknown>;
 
 let disposeScope: (() => void) | null = null;
@@ -22,8 +18,8 @@ let disposeScope: (() => void) | null = null;
 const NEVER_EQUAL = (): boolean => false;
 const NOOP_HANDLER = (): void => {};
 
-export const royaleFx2Framework: ReactiveFramework<Cell> = {
-  name: "Royale FX2",
+export const cosignalsArenaFramework: ReactiveFramework<Cell> = {
+  name: "Cosignals Arena",
   createSignal: (initialValue) => {
     const s = createAtom(initialValue);
     if (typeof initialValue === "function") {
@@ -40,16 +36,16 @@ export const royaleFx2Framework: ReactiveFramework<Cell> = {
   createComputed: (fn) => createComputed(fn),
   readComputed: (cell) => (cell as Computed<unknown>).get(),
   effect: (fn) => {
-    // fx2's effect is a pure tracked compute plus an untracked handler. The
-    // benchmark's effect is a single tracked body that reads and counts but
-    // never writes signals, so it runs as the compute; never-equal delivery
-    // keeps one handler run per re-run.
+    // The fork's effect is a pure tracked compute plus an untracked handler,
+    // like the source package. The benchmark's effect is a single tracked
+    // body that reads and counts but never writes signals, so it runs as
+    // the compute; never-equal delivery keeps one handler run per re-run.
     effect(fn, NOOP_HANDLER, { equals: NEVER_EQUAL });
   },
   withBatch: (fn) => {
     batch(fn);
   },
-  withBuild: <T,>(fn: () => T): T => {
+  withBuild: <T>(fn: () => T): T => {
     let out!: T;
     disposeScope = effectScope(() => {
       out = fn();
@@ -57,6 +53,10 @@ export const royaleFx2Framework: ReactiveFramework<Cell> = {
     return out;
   },
   cleanup: () => {
+    // Scope disposal reclaims synchronously (records return to free stacks;
+    // cell records detach at last unlink), so no arena wipe is needed between
+    // cases — matching the object-graph adapter, whose cleanup is disposal
+    // alone.
     disposeScope?.();
     disposeScope = null;
   },

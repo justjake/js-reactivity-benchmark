@@ -6,8 +6,7 @@ import type { FrameworkInfo } from "./util/frameworkTypes";
  *
  * Importing an adapter module can execute library code with import-time side
  * effects: several of the arena-based libraries here allocate their typed
- * array storage the moment their module evaluates (measured: cosignals
- * ~240 MB, dalien-signals ~128 MB of external/ArrayBuffer memory). A child
+ * array storage the moment their module evaluates. A child
  * process that measures memory must only pay for the framework it actually
  * benchmarks, so this registry defers each adapter's import until load()
  * is called.
@@ -48,40 +47,17 @@ export const lazyFrameworkInfo: LazyFrameworkInfo[] = [
     }),
   },
   {
-    name: "Cosignal",
+    name: "Cosignals",
     load: async () => ({
-      framework: (await import("./frameworks/cosignal")).cosignalFramework,
+      framework: (await import("./frameworks/cosignals")).cosignalsFramework,
       testPullCounts: true,
     }),
   },
   {
-    name: "Cosignal Alt A",
+    name: "Cosignals Arena",
     load: async () => ({
-      framework: (await import("./frameworks/cosignalAltA"))
-        .cosignalAltAFramework,
-      testPullCounts: true,
-    }),
-  },
-  {
-    name: "Cosignal Alt B",
-    load: async () => ({
-      framework: (await import("./frameworks/cosignalAltB"))
-        .cosignalAltBFramework,
-      testPullCounts: true,
-    }),
-  },
-  {
-    name: "Royale FX2",
-    load: async () => ({
-      framework: (await import("./frameworks/royaleFx2")).royaleFx2Framework,
-      testPullCounts: true,
-    }),
-  },
-  {
-    name: "Royale FX2 Dalien",
-    load: async () => ({
-      framework: (await import("./frameworks/royaleFx2Dalien"))
-        .royaleFx2DalienFramework,
+      framework: (await import("./frameworks/cosignalsArena"))
+        .cosignalsArenaFramework,
       testPullCounts: true,
     }),
   },

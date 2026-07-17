@@ -7,10 +7,12 @@ import {
   type Atom,
   type Computed,
   type Signal,
-} from "signals-royale-fx2-dalien";
-import { installState } from "signals-royale-fx2-dalien/ssr";
+} from "cosignals";
+import { installState } from "cosignals/ssr";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
+// Route through the public Atom API. Graphs are built inside an effectScope
+// and disposed in cleanup(), like the other adapters.
 type Cell = Signal<unknown>;
 
 let disposeScope: (() => void) | null = null;
@@ -18,8 +20,8 @@ let disposeScope: (() => void) | null = null;
 const NEVER_EQUAL = (): boolean => false;
 const NOOP_HANDLER = (): void => {};
 
-export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
-  name: "Royale FX2 Dalien",
+export const cosignalsFramework: ReactiveFramework<Cell> = {
+  name: "Cosignals",
   createSignal: (initialValue) => {
     const s = createAtom(initialValue);
     if (typeof initialValue === "function") {
@@ -36,16 +38,16 @@ export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
   createComputed: (fn) => createComputed(fn),
   readComputed: (cell) => (cell as Computed<unknown>).get(),
   effect: (fn) => {
-    // The fork's effect is a pure tracked compute plus an untracked handler,
-    // like the source package. The benchmark's effect is a single tracked
-    // body that reads and counts but never writes signals, so it runs as
-    // the compute; never-equal delivery keeps one handler run per re-run.
+    // cosignals' effect is a pure tracked compute plus an untracked handler. The
+    // benchmark's effect is a single tracked body that reads and counts but
+    // never writes signals, so it runs as the compute; never-equal delivery
+    // keeps one handler run per re-run.
     effect(fn, NOOP_HANDLER, { equals: NEVER_EQUAL });
   },
   withBatch: (fn) => {
     batch(fn);
   },
-  withBuild: <T,>(fn: () => T): T => {
+  withBuild: <T>(fn: () => T): T => {
     let out!: T;
     disposeScope = effectScope(() => {
       out = fn();
@@ -53,10 +55,6 @@ export const royaleFx2DalienFramework: ReactiveFramework<Cell> = {
     return out;
   },
   cleanup: () => {
-    // Scope disposal reclaims synchronously (records return to free stacks;
-    // cell records detach at last unlink), so no arena wipe is needed between
-    // cases — matching the object-graph adapter, whose cleanup is disposal
-    // alone.
     disposeScope?.();
     disposeScope = null;
   },

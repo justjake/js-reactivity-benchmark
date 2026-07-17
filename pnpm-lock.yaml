@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  react-signals-utils: file:../packages/react-signals-utils
-
 importers:
 
   .:
@@ -56,13 +53,10 @@ importers:
         version: 0.5.1
       cosignals:
         specifier: file:../../../packages/cosignals
-        version: file:../packages/cosignals
-      cosignals-alt-a:
-        specifier: file:../../../packages/cosignals-alt-a
-        version: file:../packages/cosignals-alt-a
-      cosignals-alt-b:
-        specifier: file:../../../packages/cosignals-alt-b
-        version: file:../packages/cosignals-alt-b
+        version: file:../packages/cosignals(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      cosignals-arena:
+        specifier: file:../../../packages/cosignals-arena
+        version: file:../packages/cosignals-arena(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       dalien-signals:
         specifier: file:../../../packages/dalien-signals
         version: file:../packages/dalien-signals
@@ -90,12 +84,6 @@ importers:
       signal-polyfill:
         specifier: ^0.2.2
         version: 0.2.2
-      signals-royale-fx2:
-        specifier: file:../../../packages/signals-royale-fx2
-        version: file:../packages/signals-royale-fx2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      signals-royale-fx2-dalien:
-        specifier: file:../../../packages/signals-royale-fx2-dalien
-        version: file:../packages/signals-royale-fx2-dalien(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       solid-js:
         specifier: ^1.9.11
         version: 1.9.11
@@ -952,14 +940,17 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  cosignals-alt-a@file:../packages/cosignals-alt-a:
-    resolution: {directory: ../packages/cosignals-alt-a, type: directory}
-
-  cosignals-alt-b@file:../packages/cosignals-alt-b:
-    resolution: {directory: ../packages/cosignals-alt-b, type: directory}
+  cosignals-arena@file:../packages/cosignals-arena:
+    resolution: {directory: ../packages/cosignals-arena, type: directory}
+    peerDependencies:
+      react: '>=19.0.0'
+      react-dom: '>=19.0.0'
 
   cosignals@file:../packages/cosignals:
     resolution: {directory: ../packages/cosignals, type: directory}
+    peerDependencies:
+      react: '>=19.0.0'
+      react-dom: '>=19.0.0'
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -1210,9 +1201,6 @@ packages:
     peerDependencies:
       react: ^19.2.7
 
-  react-signals-utils@file:../packages/react-signals-utils:
-    resolution: {directory: ../packages/react-signals-utils, type: directory}
-
   react@19.2.7:
     resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
     engines: {node: '>=0.10.0'}
@@ -1255,18 +1243,6 @@ packages:
 
   signal-polyfill@0.2.2:
     resolution: {integrity: sha512-p63Y4Er5/eMQ9RHg0M0Y64NlsQKpiu6MDdhBXpyywRuWiPywhJTpKJ1iB5K2hJEbFZ0BnDS7ZkJ+0AfTuL37Rg==}
-
-  signals-royale-fx2-dalien@file:../packages/signals-royale-fx2-dalien:
-    resolution: {directory: ../packages/signals-royale-fx2-dalien, type: directory}
-    peerDependencies:
-      react: '>=19.0.0'
-      react-dom: '>=19.0.0'
-
-  signals-royale-fx2@file:../packages/signals-royale-fx2:
-    resolution: {directory: ../packages/signals-royale-fx2, type: directory}
-    peerDependencies:
-      react: '>=19.0.0'
-      react-dom: '>=19.0.0'
 
   solid-js@1.9.11:
     resolution: {integrity: sha512-WEJtcc5mkh/BnHA6Yrg4whlF8g6QwpmXXRg4P2ztPmcKeHHlH4+djYecBLhSpecZY2RRECXYUwIc/C2r3yzQ4Q==}
@@ -2052,15 +2028,15 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cosignals-alt-a@file:../packages/cosignals-alt-a:
+  cosignals-arena@file:../packages/cosignals-arena(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
-      react-signals-utils: file:../packages/react-signals-utils
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
 
-  cosignals-alt-b@file:../packages/cosignals-alt-b:
+  cosignals@file:../packages/cosignals(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
-      react-signals-utils: file:../packages/react-signals-utils
-
-  cosignals@file:../packages/cosignals: {}
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
 
   csstype@3.2.3: {}
 
@@ -2286,8 +2262,6 @@ snapshots:
       react: 19.2.7
       scheduler: 0.27.0
 
-  react-signals-utils@file:../packages/react-signals-utils: {}
-
   react@19.2.7: {}
 
   rolldown@1.0.0-rc.4:
@@ -2359,16 +2333,6 @@ snapshots:
   siginfo@2.0.0: {}
 
   signal-polyfill@0.2.2: {}
-
-  signals-royale-fx2-dalien@file:../packages/signals-royale-fx2-dalien(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
-    dependencies:
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-
-  signals-royale-fx2@file:../packages/signals-royale-fx2(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
-    dependencies:
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
 
   solid-js@1.9.11:
     dependencies:

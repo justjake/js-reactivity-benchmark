@@ -2,11 +2,8 @@ import type { FrameworkInfo } from "./util/frameworkTypes";
 import { alienFramework } from "./frameworks/alienSignals";
 import { dalienFramework } from "./frameworks/dalienSignals";
 import { dalienMallocFreeFramework } from "./frameworks/dalienMallocFree";
-import { cosignalFramework } from "./frameworks/cosignal";
-import { cosignalAltAFramework } from "./frameworks/cosignalAltA";
-import { cosignalAltBFramework } from "./frameworks/cosignalAltB";
-import { royaleFx2Framework } from "./frameworks/royaleFx2";
-import { royaleFx2DalienFramework } from "./frameworks/royaleFx2Dalien";
+import { cosignalsFramework } from "./frameworks/cosignals";
+import { cosignalsArenaFramework } from "./frameworks/cosignalsArena";
 import { angularFramework as angularFramework2 } from "./frameworks/angularSignals2";
 import { compostateFramework } from "./frameworks/inactive/compostate";
 import { mobxFramework } from "./frameworks/inactive/mobx";
@@ -35,11 +32,8 @@ export const frameworkInfo: FrameworkInfo[] = [
   { framework: alienFramework, testPullCounts: true },
   { framework: dalienFramework, testPullCounts: true },
   { framework: dalienMallocFreeFramework, testPullCounts: true },
-  { framework: cosignalFramework, testPullCounts: true },
-  { framework: cosignalAltAFramework, testPullCounts: true },
-  { framework: cosignalAltBFramework, testPullCounts: true },
-  { framework: royaleFx2Framework, testPullCounts: true },
-  { framework: royaleFx2DalienFramework, testPullCounts: true },
+  { framework: cosignalsFramework, testPullCounts: true },
+  { framework: cosignalsArenaFramework, testPullCounts: true },
   { framework: angularFramework2, testPullCounts: true },
   { framework: compostateFramework, testPullCounts: true },
   { framework: mobxFramework, testPullCounts: true },
@@ -58,11 +52,8 @@ export const frameworkInfo: FrameworkInfo[] = [
 export const allFrameworks: FrameworkInfo[] = [
   { framework: alienFramework, testPullCounts: true },
   { framework: dalienFramework, testPullCounts: true },
-  { framework: cosignalFramework, testPullCounts: true },
-  { framework: cosignalAltAFramework, testPullCounts: true },
-  { framework: cosignalAltBFramework, testPullCounts: true },
-  { framework: royaleFx2Framework, testPullCounts: true },
-  { framework: royaleFx2DalienFramework, testPullCounts: true },
+  { framework: cosignalsFramework, testPullCounts: true },
+  { framework: cosignalsArenaFramework, testPullCounts: true },
   { framework: angularFramework2, testPullCounts: true },
   { framework: compostateFramework, testPullCounts: true },
   { framework: mobxFramework, testPullCounts: true },
