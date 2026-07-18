@@ -30,6 +30,9 @@ export const solidFramework: ReactiveFramework<SolidCell> = {
   createComputed: (fn) => createMemo(fn),
   readComputed: (c) => c(),
   effect: (fn) => createEffect(fn),
+  // No effectPair: Solid 1.x's effect is natively auto-tracking. The `on`
+  // helper can emulate a (compute, reaction) split, but that is emulation,
+  // and the pair rows exist to measure native pair-shaped effects only.
   withBatch: (fn) => batch(fn),
   withBuild: (fn) =>
     createRoot((dispose) => {

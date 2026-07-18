@@ -18,6 +18,11 @@ export const tansuFramework: ReactiveFramework<TansuCell> = {
   createComputed: (fn) => computed(fn) as TansuCell,
   readComputed: (c) => c(),
   effect: (fn) => toCleanup.push(computed(fn).subscribe(() => {})),
+  // tansu's native pair is a computed store plus a subscription: the store
+  // tracks what compute reads and only notifies subscribers when its value
+  // changes, and the subscriber runs untracked with that value.
+  effectPair: (compute, reaction) =>
+    toCleanup.push(computed(compute).subscribe(reaction)),
   withBatch: (fn) => batch(fn),
   withBuild: (fn) => fn(),
   cleanup: () => {

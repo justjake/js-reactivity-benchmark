@@ -79,4 +79,37 @@ function frameworkTests({ framework, testPullCounts }: FrameworkInfo) {
     expect(sum).toEqual(72);
     expect(counter.count).toEqual(22);
   });
+
+  // Pair-style coverage, only for frameworks whose effects natively take
+  // the (compute, reaction) shape.
+  if (framework.effectPair) {
+    test(`${name} | static graph, pair effect style`, () => {
+      const config = makeConfig();
+      const { graph, counter } = makeGraph(framework, 1, config, "pair");
+      const sum = runGraph(graph, 2, framework);
+      expect(sum).toEqual(16);
+      expect(counter.count).toEqual(11);
+      framework.cleanup();
+    });
+
+    test(`${name} | effectPair reaction sees changed values`, () => {
+      const seen: unknown[] = [];
+      const s = framework.withBuild(() => {
+        const s = framework.createSignal(0);
+        framework.effectPair!(
+          () => framework.readSignal(s),
+          (value) => {
+            seen.push(value);
+          },
+        );
+        return s;
+      });
+      framework.withBatch(() => framework.writeSignal(s, 1));
+      framework.withBatch(() => framework.writeSignal(s, 2));
+      // Whether the reaction runs at creation time is framework-defined, so
+      // only the writes' deliveries are asserted.
+      expect(seen.slice(-2)).toEqual([1, 2]);
+      framework.cleanup();
+    });
+  }
 }

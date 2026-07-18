@@ -1,6 +1,11 @@
 // Inspired by https://github.com/solidjs/solid/blob/main/packages/solid/bench/bench.cjs
 
 import { nextTick } from "../util/asyncUtil";
+import {
+  EffectStyle,
+  stylesFor,
+  styledTestName,
+} from "../util/effectStyle";
 import { medianOf } from "../util/medianOf";
 import { PerfResultCallback } from "../util/perfLogging";
 import { ReactiveFramework } from "../util/reactiveFramework";
@@ -9,14 +14,28 @@ const COUNT = 1e5;
 
 function empty() {}
 
+// Every effect in this suite is a pure read with no side-effect half, so the
+// pair variant's computes return the read value and share one no-op reaction.
+const NOOP_REACTION = (): void => {};
+
 export async function sbench<S>(
   framework: ReactiveFramework<S>,
   logPerfResult: PerfResultCallback,
 ) {
+  for (const style of stylesFor(framework)) {
+    await sbenchStyle(framework, logPerfResult, style);
+  }
+}
+
+async function sbenchStyle<S>(
+  framework: ReactiveFramework<S>,
+  logPerfResult: PerfResultCallback,
+  style: EffectStyle,
+) {
   const createSignalsTime = await run(createSignals, COUNT, COUNT);
   logPerfResult({
     framework: framework.name,
-    test: "createSignals",
+    test: styledTestName("createSignals", style),
     time: createSignalsTime,
   });
 
@@ -32,7 +51,7 @@ export async function sbench<S>(
   createTotal += await run(create1to1000, COUNT, COUNT / 1000);
   logPerfResult({
     framework: framework.name,
-    test: "createComputations",
+    test: styledTestName("createComputations", style),
     time: createTotal,
   });
 
@@ -46,7 +65,7 @@ export async function sbench<S>(
   updateTotal += await run(update1to1000, COUNT, 1);
   logPerfResult({
     framework: framework.name,
-    test: "updateSignals",
+    test: styledTestName("updateSignals", style),
     time: updateTotal,
   });
 
@@ -198,52 +217,95 @@ export async function sbench<S>(
   }
 
   function createComputation0(i: number) {
-    framework.effect(() => {
-      // 0-source effect; capture i so each effect gets a distinct closure
-      void i;
-    });
+    if (style === "pair") {
+      // 0-source effect; capture i so each compute gets a distinct closure
+      framework.effectPair!(() => i, NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        // 0-source effect; capture i so each effect gets a distinct closure
+        void i;
+      });
+    }
     return empty;
   }
 
   function createComputation1(s1: S) {
-    framework.effect(() => {
-      framework.readSignal(s1);
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => framework.readSignal(s1), NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        framework.readSignal(s1);
+      });
+    }
     return empty;
   }
   function createComputation2(s1: S, s2: S) {
-    framework.effect(() => {
-      (framework.readSignal(s1) as number) +
-        (framework.readSignal(s2) as number);
-    });
+    if (style === "pair") {
+      framework.effectPair!(
+        () =>
+          (framework.readSignal(s1) as number) +
+          (framework.readSignal(s2) as number),
+        NOOP_REACTION,
+      );
+    } else {
+      framework.effect(() => {
+        (framework.readSignal(s1) as number) +
+          (framework.readSignal(s2) as number);
+      });
+    }
     return empty;
   }
 
   function createComputation4(s1: S, s2: S, s3: S, s4: S) {
-    framework.effect(() => {
-      (framework.readSignal(s1) as number) +
-        (framework.readSignal(s2) as number) +
-        (framework.readSignal(s3) as number) +
-        (framework.readSignal(s4) as number);
-    });
+    if (style === "pair") {
+      framework.effectPair!(
+        () =>
+          (framework.readSignal(s1) as number) +
+          (framework.readSignal(s2) as number) +
+          (framework.readSignal(s3) as number) +
+          (framework.readSignal(s4) as number),
+        NOOP_REACTION,
+      );
+    } else {
+      framework.effect(() => {
+        (framework.readSignal(s1) as number) +
+          (framework.readSignal(s2) as number) +
+          (framework.readSignal(s3) as number) +
+          (framework.readSignal(s4) as number);
+      });
+    }
     return empty;
   }
 
   function createComputation1000(ss: S[], offset: number) {
-    framework.effect(() => {
-      let sum = 0;
-      for (let i = 0; i < 1000; i++) {
-        sum += framework.readSignal(ss[offset + i]) as number;
-      }
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => {
+        let sum = 0;
+        for (let i = 0; i < 1000; i++) {
+          sum += framework.readSignal(ss[offset + i]) as number;
+        }
+        return sum;
+      }, NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        let sum = 0;
+        for (let i = 0; i < 1000; i++) {
+          sum += framework.readSignal(ss[offset + i]) as number;
+        }
+      });
+    }
     return empty;
   }
 
   function update1to1(n: number, sources: S[]) {
     const s0 = sources[0];
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+    }
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
@@ -256,10 +318,19 @@ export async function sbench<S>(
   function update2to1(n: number, sources: S[]) {
     const s0 = sources[0];
     const s1 = sources[1];
-    framework.effect(() => {
-      (framework.readSignal(s0) as number) +
-        (framework.readSignal(s1) as number);
-    });
+    if (style === "pair") {
+      framework.effectPair!(
+        () =>
+          (framework.readSignal(s0) as number) +
+          (framework.readSignal(s1) as number),
+        NOOP_REACTION,
+      );
+    } else {
+      framework.effect(() => {
+        (framework.readSignal(s0) as number) +
+          (framework.readSignal(s1) as number);
+      });
+    }
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
@@ -274,12 +345,23 @@ export async function sbench<S>(
     const s1 = sources[1];
     const s2 = sources[2];
     const s3 = sources[3];
-    framework.effect(() => {
-      (framework.readSignal(s0) as number) +
-        (framework.readSignal(s1) as number) +
-        (framework.readSignal(s2) as number) +
-        (framework.readSignal(s3) as number);
-    });
+    if (style === "pair") {
+      framework.effectPair!(
+        () =>
+          (framework.readSignal(s0) as number) +
+          (framework.readSignal(s1) as number) +
+          (framework.readSignal(s2) as number) +
+          (framework.readSignal(s3) as number),
+        NOOP_REACTION,
+      );
+    } else {
+      framework.effect(() => {
+        (framework.readSignal(s0) as number) +
+          (framework.readSignal(s1) as number) +
+          (framework.readSignal(s2) as number) +
+          (framework.readSignal(s3) as number);
+      });
+    }
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
@@ -291,12 +373,22 @@ export async function sbench<S>(
 
   function update1000to1(n: number, sources: S[]) {
     const s0 = sources[0];
-    framework.effect(() => {
-      let sum = 0;
-      for (let i = 0; i < 1000; i++) {
-        sum += framework.readSignal(sources[i]) as number;
-      }
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => {
+        let sum = 0;
+        for (let i = 0; i < 1000; i++) {
+          sum += framework.readSignal(sources[i]) as number;
+        }
+        return sum;
+      }, NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        let sum = 0;
+        for (let i = 0; i < 1000; i++) {
+          sum += framework.readSignal(sources[i]) as number;
+        }
+      });
+    }
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
@@ -308,12 +400,17 @@ export async function sbench<S>(
 
   function update1to2(n: number, sources: S[]) {
     const s0 = sources[0];
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+    }
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
@@ -325,18 +422,25 @@ export async function sbench<S>(
 
   function update1to4(n: number, sources: S[]) {
     const s0 = sources[0];
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
-    framework.effect(() => {
-      framework.readSignal(s0);
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+      framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+      framework.effect(() => {
+        framework.readSignal(s0);
+      });
+    }
     return () => {
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
@@ -348,10 +452,16 @@ export async function sbench<S>(
 
   function update1to1000(n: number, sources: S[]) {
     const s0 = sources[0];
-    for (let i = 0; i < 1000; i++) {
-      framework.effect(() => {
-        framework.readSignal(s0);
-      });
+    if (style === "pair") {
+      for (let i = 0; i < 1000; i++) {
+        framework.effectPair!(() => framework.readSignal(s0), NOOP_REACTION);
+      }
+    } else {
+      for (let i = 0; i < 1000; i++) {
+        framework.effect(() => {
+          framework.readSignal(s0);
+        });
+      }
     }
     return () => {
       for (let i = 0; i < n / 10; i++) {

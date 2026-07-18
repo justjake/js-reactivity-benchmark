@@ -114,6 +114,13 @@ export const lazyFrameworkInfo: LazyFrameworkInfo[] = [
     }),
   },
   {
+    // same caveat as solid 1.x
+    name: "SolidJS 2.0",
+    load: async () => ({
+      framework: (await import("./frameworks/solid2")).solid2Framework,
+    }),
+  },
+  {
     name: "Pota",
     load: async () => ({
       framework: (await import("./frameworks/pota")).potaFramework,

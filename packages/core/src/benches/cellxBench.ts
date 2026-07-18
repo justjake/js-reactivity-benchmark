@@ -1,10 +1,23 @@
 // The following is an implementation of the cellx benchmark https://github.com/Riim/cellx/blob/master/perf/perf.html
 import { nextTick } from "../util/asyncUtil";
+import {
+  EffectStyle,
+  stylesFor,
+  styledTestName,
+} from "../util/effectStyle";
 import { FrameworkInfo } from "../util/frameworkTypes";
 import { PerfResultCallback } from "../util/perfLogging";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
-const cellx = <S>(framework: ReactiveFramework<S>, layers: number) => {
+// The per-layer effects only exist to keep the computed props observed; they
+// have no side-effect half, so the pair variant uses a shared no-op reaction.
+const NOOP_REACTION = (): void => {};
+
+const cellx = <S>(
+  framework: ReactiveFramework<S>,
+  layers: number,
+  style: EffectStyle,
+) => {
   const iter = framework.withBuild(() => {
     const start = {
       prop1: framework.createSignal(1),
@@ -37,18 +50,37 @@ const cellx = <S>(framework: ReactiveFramework<S>, layers: number) => {
         prop4: framework.createComputed(() => framework.readComputed(m.prop3)),
       };
 
-      framework.effect(() => {
-        framework.readComputed(s.prop1);
-      });
-      framework.effect(() => {
-        framework.readComputed(s.prop2);
-      });
-      framework.effect(() => {
-        framework.readComputed(s.prop3);
-      });
-      framework.effect(() => {
-        framework.readComputed(s.prop4);
-      });
+      if (style === "pair") {
+        framework.effectPair!(
+          () => framework.readComputed(s.prop1),
+          NOOP_REACTION,
+        );
+        framework.effectPair!(
+          () => framework.readComputed(s.prop2),
+          NOOP_REACTION,
+        );
+        framework.effectPair!(
+          () => framework.readComputed(s.prop3),
+          NOOP_REACTION,
+        );
+        framework.effectPair!(
+          () => framework.readComputed(s.prop4),
+          NOOP_REACTION,
+        );
+      } else {
+        framework.effect(() => {
+          framework.readComputed(s.prop1);
+        });
+        framework.effect(() => {
+          framework.readComputed(s.prop2);
+        });
+        framework.effect(() => {
+          framework.readComputed(s.prop3);
+        });
+        framework.effect(() => {
+          framework.readComputed(s.prop4);
+        });
+      }
 
       layer = s;
     }
@@ -130,57 +162,65 @@ export const cellxbench = async (
 
   // warmup with all frameworks first
   for (const { framework } of frameworkInfo) {
-    const layers = 1000;
-    const [before, after] = expected[layers];
-    const [_, b, a] = cellx(framework, Number(layers));
+    for (const style of stylesFor(framework)) {
+      const layers = 1000;
+      const [before, after] = expected[layers];
+      const [_, b, a] = cellx(framework, Number(layers), style);
 
-    console.assert(
-      arraysEqual(b, before),
-      `Expected first layer ${before}, found first layer ${b}`,
-    );
+      console.assert(
+        arraysEqual(b, before),
+        `Expected first layer ${before}, found first layer ${b}`,
+      );
 
-    console.assert(
-      arraysEqual(a, after),
-      `Expected last layer ${after}, found last layer ${a}`,
-    );
+      console.assert(
+        arraysEqual(a, after),
+        `Expected last layer ${after}, found last layer ${a}`,
+      );
+    }
   }
 
   // actual benchmark
   for (const { framework } of frameworkInfo) {
-    const results: Record<number, BenchmarkResults> = {};
+    for (const style of stylesFor(framework)) {
+      const results: Record<number, BenchmarkResults> = {};
 
-    for (const layers in expected) {
-      let total = 0;
-      for (let i = 0; i < 10; i++) {
-        await nextTick();
+      for (const layers in expected) {
+        let total = 0;
+        for (let i = 0; i < 10; i++) {
+          await nextTick();
 
-        const [elapsed, before, after] = cellx(framework, Number(layers));
+          const [elapsed, before, after] = cellx(
+            framework,
+            Number(layers),
+            style,
+          );
 
-        results[layers] = [before, after];
+          results[layers] = [before, after];
 
-        total += elapsed;
+          total += elapsed;
+        }
+
+        logPerfResult({
+          framework: framework.name,
+          test: styledTestName(`cellx${layers}`, style),
+          time: total,
+        });
       }
 
-      logPerfResult({
-        framework: framework.name,
-        test: `cellx${layers}`,
-        time: total,
-      });
-    }
+      for (const layers in expected) {
+        const [before, after] = results[layers];
+        const [expectedBefore, expectedAfter] = expected[layers];
 
-    for (const layers in expected) {
-      const [before, after] = results[layers];
-      const [expectedBefore, expectedAfter] = expected[layers];
+        console.assert(
+          arraysEqual(before, expectedBefore),
+          `Expected first layer ${expectedBefore}, found first layer ${before}`,
+        );
 
-      console.assert(
-        arraysEqual(before, expectedBefore),
-        `Expected first layer ${expectedBefore}, found first layer ${before}`,
-      );
-
-      console.assert(
-        arraysEqual(after, expectedAfter),
-        `Expected last layer ${expectedAfter}, found last layer ${after}`,
-      );
+        console.assert(
+          arraysEqual(after, expectedAfter),
+          `Expected last layer ${expectedAfter}, found last layer ${after}`,
+        );
+      }
     }
   }
 };

@@ -1,8 +1,12 @@
 import { Counter } from "../../util/counter";
+import { EffectStyle } from "../../util/effectStyle";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 
 /** broad propagation */
-export function broadPropagation<S>(bridge: ReactiveFramework<S>) {
+export function broadPropagation<S>(
+  bridge: ReactiveFramework<S>,
+  style: EffectStyle,
+) {
   let head = bridge.createSignal(0);
   let last = head;
   let callCounter = new Counter();
@@ -13,10 +17,21 @@ export function broadPropagation<S>(bridge: ReactiveFramework<S>) {
     let current2 = bridge.createComputed(() => {
       return (bridge.readComputed(current) as number) + 1;
     });
-    bridge.effect(() => {
-      bridge.readComputed(current2);
-      callCounter.count++;
-    });
+    // Each effect's value tracks head, so it changes on every counted write
+    // and the pair reaction fires exactly as often as the tracked body.
+    if (style === "pair") {
+      bridge.effectPair!(
+        () => bridge.readComputed(current2),
+        () => {
+          callCounter.count++;
+        },
+      );
+    } else {
+      bridge.effect(() => {
+        bridge.readComputed(current2);
+        callCounter.count++;
+      });
+    }
     last = current2;
   }
 

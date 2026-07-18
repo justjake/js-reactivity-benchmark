@@ -11,6 +11,7 @@ import { preactSignalFramework } from "./frameworks/preactSignals";
 import { reactivelyFramework } from "./frameworks/reactively";
 import { sFramework } from "./frameworks/inactive/s";
 import { solidFramework } from "./frameworks/solid";
+import { solid2Framework } from "./frameworks/solid2";
 import { potaFramework } from "./frameworks/pota";
 import { svelteFramework } from "./frameworks/svelte";
 import { tansuFramework } from "./frameworks/tansu";
@@ -41,6 +42,7 @@ export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
   { framework: sFramework },
   { framework: solidFramework }, // solid can't testPullCounts because batch executes all leaf nodes even if unread
+  { framework: solid2Framework }, // same caveat as solid 1.x
   { framework: potaFramework },
   { framework: svelteFramework, testPullCounts: true },
   { framework: tansuFramework, testPullCounts: true },
@@ -63,6 +65,7 @@ export const allFrameworks: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
   { framework: sFramework },
   { framework: solidFramework }, // solid can't testPullCounts because batch executes all leaf nodes even if unread
+  { framework: solid2Framework }, // same caveat as solid 1.x
   { framework: potaFramework },
   { framework: svelteFramework, testPullCounts: true },
   { framework: tansuFramework, testPullCounts: true },

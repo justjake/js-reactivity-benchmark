@@ -1,9 +1,10 @@
 import { Counter } from "../../util/counter";
+import { EffectStyle } from "../../util/effectStyle";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 
 let width = 5;
 
-export function diamond<S>(bridge: ReactiveFramework<S>) {
+export function diamond<S>(bridge: ReactiveFramework<S>, style: EffectStyle) {
   let head = bridge.createSignal(0);
   let current: S[] = [];
   for (let i = 0; i < width; i++) {
@@ -19,10 +20,21 @@ export function diamond<S>(bridge: ReactiveFramework<S>) {
       .reduce((a, b) => a + b, 0);
   });
   let callCounter = new Counter();
-  bridge.effect(() => {
-    bridge.readComputed(sum);
-    callCounter.count++;
-  });
+  // The effect's value is (head + 1) * width, so it changes on every counted
+  // write and the pair reaction fires exactly as often as the tracked body.
+  if (style === "pair") {
+    bridge.effectPair!(
+      () => bridge.readComputed(sum),
+      () => {
+        callCounter.count++;
+      },
+    );
+  } else {
+    bridge.effect(() => {
+      bridge.readComputed(sum);
+      callCounter.count++;
+    });
+  }
 
   return () => {
     bridge.withBatch(() => {

@@ -29,7 +29,11 @@ export const xReactivityFramework: ReactiveFramework<XReactivityCell> = {
   },
   createComputed: (fn) => createMemo(fn),
   readComputed: (c) => c(),
+  // @solidjs/signals' createEffect is natively a (compute, effect) pair; the
+  // tracked shape passes the whole body as the compute with a no-op second
+  // half, the pair shape passes both halves through.
   effect: (fn) => createEffect(fn, () => {}),
+  effectPair: (compute, reaction) => createEffect(compute, reaction),
   withBatch: (fn) => {
     fn();
     flush();

@@ -2,7 +2,7 @@ import {
   batch,
   createAtom,
   createComputed,
-  effect,
+  createEffect,
   effectScope,
   type Atom,
   type Computed,
@@ -37,10 +37,17 @@ export const cosignalsArenaFramework: ReactiveFramework<Cell> = {
   readComputed: (cell) => (cell as Computed<unknown>).get(),
   effect: (fn) => {
     // The fork's effect is a pure tracked compute plus an untracked handler,
-    // like the source package. The benchmark's effect is a single tracked
-    // body that reads and counts but never writes signals, so it runs as
-    // the compute; never-equal delivery keeps one handler run per re-run.
-    effect(fn, NOOP_HANDLER, { equals: NEVER_EQUAL });
+    // like the source package. The benchmark's tracked effect is a single
+    // tracked body that reads and counts but never writes signals, so it
+    // runs as the compute; never-equal delivery keeps one handler run per
+    // re-run.
+    createEffect(fn, NOOP_HANDLER, { equals: NEVER_EQUAL });
+  },
+  // The pair shape is this library's native effect: compute runs tracked,
+  // the reaction handler runs untracked when compute's value changes under
+  // the default equality.
+  effectPair: (compute, reaction) => {
+    createEffect(compute, reaction);
   },
   withBatch: (fn) => {
     batch(fn);

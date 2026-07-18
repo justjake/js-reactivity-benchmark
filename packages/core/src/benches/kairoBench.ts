@@ -10,6 +10,7 @@ import { nextTick } from "../util/asyncUtil";
 import { medianTest } from "../util/benchRepeat";
 import { PerfResultCallback } from "../util/perfLogging";
 import { FrameworkInfo } from "../util/frameworkTypes";
+import { stylesFor, styledTestName } from "../util/effectStyle";
 import { mol } from "./kairo/molBench";
 
 const cases = [
@@ -31,15 +32,17 @@ export async function kairoBench(
   // warmup
   for (const c of cases) {
     for (const { framework } of frameworkInfo) {
-      const iter = framework.withBuild(() => c.fn(framework));
+      for (const style of stylesFor(framework)) {
+        const iter = framework.withBuild(() => c.fn(framework, style));
 
-      iter();
-      iter();
+        iter();
+        iter();
 
-      await nextTick();
-      iter();
+        await nextTick();
+        iter();
 
-      framework.cleanup();
+        framework.cleanup();
+      }
     }
   }
 
@@ -49,32 +52,34 @@ export async function kairoBench(
   // actual benchmark
   for (const c of cases) {
     for (const { framework } of frameworkInfo) {
-      const iter = framework.withBuild(() => {
-        const iter = c.fn(framework);
-        return iter;
-      });
+      for (const style of stylesFor(framework)) {
+        const iter = framework.withBuild(() => {
+          const iter = c.fn(framework, style);
+          return iter;
+        });
 
-      iter();
-      iter();
-      await nextTick();
+        iter();
+        iter();
+        await nextTick();
 
-      iter();
-      await nextTick();
+        iter();
+        await nextTick();
 
-      const { time } = await medianTest(10, () => {
-        for (let i = 0; i < 500; i++) {
-          iter();
-        }
-      });
+        const { time } = await medianTest(10, () => {
+          for (let i = 0; i < 500; i++) {
+            iter();
+          }
+        });
 
-      framework.cleanup();
-      if (globalThis.gc) (gc!(), gc!());
+        framework.cleanup();
+        if (globalThis.gc) (gc!(), gc!());
 
-      logPerfResult({
-        framework: framework.name,
-        test: c.name,
-        time,
-      });
+        logPerfResult({
+          framework: framework.name,
+          test: styledTestName(c.name, style),
+          time,
+        });
+      }
     }
   }
 }

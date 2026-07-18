@@ -1,9 +1,13 @@
 import { Counter } from "../../util/counter";
+import { EffectStyle } from "../../util/effectStyle";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 let len = 50;
 
 /** deep propagation */
-export function deepPropagation<S>(bridge: ReactiveFramework<S>) {
+export function deepPropagation<S>(
+  bridge: ReactiveFramework<S>,
+  style: EffectStyle,
+) {
   let head = bridge.createSignal(0);
   let current = head;
   for (let i = 0; i < len; i++) {
@@ -14,10 +18,21 @@ export function deepPropagation<S>(bridge: ReactiveFramework<S>) {
   }
   let callCounter = new Counter();
 
-  bridge.effect(() => {
-    bridge.readComputed(current);
-    callCounter.count++;
-  });
+  // The effect's value is len + head, so it changes on every counted write
+  // and the pair reaction fires exactly as often as the tracked body.
+  if (style === "pair") {
+    bridge.effectPair!(
+      () => bridge.readComputed(current),
+      () => {
+        callCounter.count++;
+      },
+    );
+  } else {
+    bridge.effect(() => {
+      bridge.readComputed(current);
+      callCounter.count++;
+    });
+  }
 
   const iter = 50;
 

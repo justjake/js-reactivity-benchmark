@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "esbuild src/index.ts src/isolated.ts --bundle --format=esm --platform=node --target=esnext --outdir=dist --sourcemap=external",
-    "run": "node dist/index.js"
+    "run": "node dist/index.js",
+    "bench-isolated": "pnpm build && node dist/isolated.js"
   },
   "dependencies": {
     "@types/node": "^24.3.0",

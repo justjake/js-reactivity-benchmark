@@ -45,6 +45,13 @@ export const tanstackStoreFramework: ReactiveFramework<TanStackCell> = {
   effect: (fn) => {
     subscriptions.push(createAtom(fn).subscribe(noopObserver));
   },
+  // The native pair here is a computed atom plus a subscription: the atom
+  // tracks what compute reads and only wakes subscribers when its value
+  // changes, and the subscriber runs untracked with that value.
+  effectPair: (compute, reaction) => {
+    const atom = createAtom(compute);
+    subscriptions.push(atom.subscribe(() => reaction(atom.get())));
+  },
   withBatch: (fn) => batch(fn),
   withBuild: (fn) => fn(),
   cleanup: () => {

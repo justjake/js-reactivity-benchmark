@@ -1,10 +1,14 @@
 import { Counter } from "../../util/counter";
+import { EffectStyle } from "../../util/effectStyle";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 
 let size = 30;
 
 /** repeated observers */
-export function repeatedObservers<S>(bridge: ReactiveFramework<S>) {
+export function repeatedObservers<S>(
+  bridge: ReactiveFramework<S>,
+  style: EffectStyle,
+) {
   let head = bridge.createSignal(0);
   let current = bridge.createComputed(() => {
     let result = 0;
@@ -16,10 +20,21 @@ export function repeatedObservers<S>(bridge: ReactiveFramework<S>) {
   });
 
   let callCounter = new Counter();
-  bridge.effect(() => {
-    bridge.readComputed(current);
-    callCounter.count++;
-  });
+  // The effect's value is head * size, so it changes on every counted write
+  // and the pair reaction fires exactly as often as the tracked body.
+  if (style === "pair") {
+    bridge.effectPair!(
+      () => bridge.readComputed(current),
+      () => {
+        callCounter.count++;
+      },
+    );
+  } else {
+    bridge.effect(() => {
+      bridge.readComputed(current);
+      callCounter.count++;
+    });
+  }
 
   return () => {
     bridge.withBatch(() => {

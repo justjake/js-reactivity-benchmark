@@ -1,5 +1,6 @@
 import { makeGraph, runGraph } from "./dependencyGraph";
 import { verifyBenchResult } from "../../util/perfTests";
+import { stylesFor, styledTestName } from "../../util/effectStyle";
 import { FrameworkInfo, TestConfig } from "../../util/frameworkTypes";
 import { perfTests } from "../../config";
 import { medianTest } from "../../util/benchRepeat";
@@ -28,36 +29,46 @@ export async function dynamicBench(
   for (const config of perfTests) {
     for (const frameworkTest of frameworkInfo) {
       const { framework } = frameworkTest;
-      const { iterations, readFraction } = config;
+      for (const style of stylesFor(framework)) {
+        const { iterations, readFraction } = config;
 
-      const { graph, counter } = makeGraph(framework, readFraction, config);
+        const { graph, counter } = makeGraph(
+          framework,
+          readFraction,
+          config,
+          style,
+        );
 
-      function runOnce(): number {
-        return runGraph(graph, iterations, framework);
+        function runOnce(): number {
+          return runGraph(graph, iterations, framework);
+        }
+
+        // warm up
+        runOnce();
+        runOnce();
+
+        await nextTick();
+        runOnce();
+
+        const timedResult = await medianTest(testRepeats, () => {
+          counter.count = 0;
+          const sum = runOnce();
+          return { sum, count: counter.count };
+        });
+
+        framework.cleanup();
+        if (globalThis.gc) (gc!(), gc!());
+
+        logPerfResult({
+          framework: framework.name,
+          test: styledTestName(
+            makeTitle(config) + (config.name ? ` (${config.name})` : ""),
+            style,
+          ),
+          time: timedResult.time,
+        });
+        verifyBenchResult(frameworkTest, config, timedResult);
       }
-
-      // warm up
-      runOnce();
-      runOnce();
-
-      await nextTick();
-      runOnce();
-
-      const timedResult = await medianTest(testRepeats, () => {
-        counter.count = 0;
-        const sum = runOnce();
-        return { sum, count: counter.count };
-      });
-
-      framework.cleanup();
-      if (globalThis.gc) (gc!(), gc!());
-
-      logPerfResult({
-        framework: framework.name,
-        test: makeTitle(config) + (config.name ? ` (${config.name})` : ""),
-        time: timedResult.time,
-      });
-      verifyBenchResult(frameworkTest, config, timedResult);
     }
   }
 }

@@ -1,7 +1,12 @@
 import { Counter } from "../../util/counter";
+import { EffectStyle } from "../../util/effectStyle";
 import { TestConfig } from "../../util/frameworkTypes";
 import { pseudoRandom } from "../../util/pseudoRandom";
 import { ReactiveFramework } from "../../util/reactiveFramework";
+
+// The leaf effect only exists to keep the read leaves observed; it has no
+// side-effect half, so the pair variant uses a shared no-op reaction.
+const NOOP_REACTION = (): void => {};
 
 export interface Graph<S> {
   sources: S[];
@@ -27,6 +32,7 @@ export function makeGraph<S>(
   framework: ReactiveFramework<S>,
   readFraction: number,
   config: TestConfig,
+  style: EffectStyle = "tracked",
 ): GraphAndCounter<S> {
   const { width, totalLayers, staticFraction, nSources } = config;
 
@@ -48,11 +54,21 @@ export function makeGraph<S>(
     const leaves = rows[rows.length - 1];
     const skipCount = Math.round(leaves.length * (1 - readFraction));
     const readLeaves = removeElems(leaves, skipCount, rand);
-    framework.effect(() => {
-      for (const leaf of readLeaves) {
-        framework.readComputed(leaf);
-      }
-    });
+    if (style === "pair") {
+      framework.effectPair!(() => {
+        let last: unknown;
+        for (const leaf of readLeaves) {
+          last = framework.readComputed(leaf);
+        }
+        return last;
+      }, NOOP_REACTION);
+    } else {
+      framework.effect(() => {
+        for (const leaf of readLeaves) {
+          framework.readComputed(leaf);
+        }
+      });
+    }
 
     const graph = { sources, layers: rows, readLeaves };
     return { graph, counter };

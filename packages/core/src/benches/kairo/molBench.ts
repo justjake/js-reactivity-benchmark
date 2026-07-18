@@ -1,3 +1,4 @@
+import { EffectStyle } from "../../util/effectStyle";
 import { ReactiveFramework } from "../../util/reactiveFramework";
 
 function fib(n: number): number {
@@ -14,7 +15,7 @@ const numbers = Array.from({ length: 5 }, (_, i) => i);
 /** the value type of computed D below */
 type Points = { x: number }[];
 
-export function mol<S>(framework: ReactiveFramework<S>) {
+export function mol<S>(framework: ReactiveFramework<S>, style: EffectStyle) {
   let res: number[] = [];
   const A = framework.createSignal(0);
   const B = framework.createSignal(0);
@@ -54,18 +55,45 @@ export function mol<S>(framework: ReactiveFramework<S>) {
       (framework.readComputed(D) as Points)[4].x +
       (framework.readComputed(F) as number),
   );
-  // H:
-  framework.effect(() => {
-    res.push(hard(framework.readComputed(G) as number, "H"));
-  });
-  // I:
-  framework.effect(() => {
-    res.push(framework.readComputed(G) as number);
-  });
-  // J:
-  framework.effect(() => {
-    res.push(hard(framework.readComputed(F) as number, "J"));
-  });
+  // In the pair variant the reads stay in the compute and the hard() work
+  // plus the push move to the reaction. G changes every iteration; F is
+  // constant under this workload, so neither style re-runs J's side effect.
+  if (style === "pair") {
+    // H:
+    framework.effectPair!(
+      () => framework.readComputed(G),
+      (value) => {
+        res.push(hard(value as number, "H"));
+      },
+    );
+    // I:
+    framework.effectPair!(
+      () => framework.readComputed(G),
+      (value) => {
+        res.push(value as number);
+      },
+    );
+    // J:
+    framework.effectPair!(
+      () => framework.readComputed(F),
+      (value) => {
+        res.push(hard(value as number, "J"));
+      },
+    );
+  } else {
+    // H:
+    framework.effect(() => {
+      res.push(hard(framework.readComputed(G) as number, "H"));
+    });
+    // I:
+    framework.effect(() => {
+      res.push(framework.readComputed(G) as number);
+    });
+    // J:
+    framework.effect(() => {
+      res.push(hard(framework.readComputed(F) as number, "J"));
+    });
+  }
 
   let i = 0;
   return () => {
