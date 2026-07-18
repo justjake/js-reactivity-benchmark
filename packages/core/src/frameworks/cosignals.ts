@@ -7,7 +7,7 @@ import {
   type Atom,
   type Computed,
   type Signal,
-} from "cosignals";
+} from "cosignals/core";
 import { installState } from "cosignals/ssr";
 import { ReactiveFramework } from "../util/reactiveFramework";
 
