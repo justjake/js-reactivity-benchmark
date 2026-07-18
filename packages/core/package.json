@@ -21,7 +21,7 @@
     "@solidjs/signals": "^0.10.2",
     "@tanstack/store": "0.11.0",
     "@vue/reactivity": "^3.5.28",
-    "alien-signals": "file:../../../upstream-alien-signals",
+    "alien-signals": "file:../../../vendor/alien-signals",
     "dalien-signals": "file:../../../packages/dalien-signals",
     "cosignals": "file:../../../packages/cosignals",
     "cosignals-arena": "file:../../../packages/cosignals-arena",

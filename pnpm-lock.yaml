@@ -46,17 +46,17 @@ importers:
         specifier: ^3.5.28
         version: 3.5.28
       alien-signals:
-        specifier: file:../../../upstream-alien-signals
-        version: file:../upstream-alien-signals
+        specifier: file:../../../vendor/alien-signals
+        version: file:../vendor/alien-signals
       compostate:
         specifier: ^0.5.1
         version: 0.5.1
       cosignals:
         specifier: file:../../../packages/cosignals
-        version: file:../packages/cosignals(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: file:../packages/cosignals(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(scheduler@0.27.0)
       cosignals-arena:
         specifier: file:../../../packages/cosignals-arena
-        version: file:../packages/cosignals-arena(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: file:../packages/cosignals-arena(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(scheduler@0.27.0)
       dalien-signals:
         specifier: file:../../../packages/dalien-signals
         version: file:../packages/dalien-signals
@@ -886,8 +886,8 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  alien-signals@file:../upstream-alien-signals:
-    resolution: {directory: ../upstream-alien-signals, type: directory}
+  alien-signals@file:../vendor/alien-signals:
+    resolution: {directory: ../vendor/alien-signals, type: directory}
 
   anod@0.9.1:
     resolution: {integrity: sha512-J3Rw8vYEw8EZfFyCHM43C95ozidIoOV4ai9cQvvkWV3UbdKUfjjqDq4T0uOHEdBDPcqzwBRhI88uvhktXoaFVA==}
@@ -943,14 +943,16 @@ packages:
   cosignals-arena@file:../packages/cosignals-arena:
     resolution: {directory: ../packages/cosignals-arena, type: directory}
     peerDependencies:
-      react: '>=19.0.0'
-      react-dom: '>=19.0.0'
+      react: '>=18.2.0'
+      react-dom: '>=18.2.0'
+      scheduler: '>=0.23.0'
 
   cosignals@file:../packages/cosignals:
     resolution: {directory: ../packages/cosignals, type: directory}
     peerDependencies:
-      react: '>=19.0.0'
-      react-dom: '>=19.0.0'
+      react: '>=18.2.0'
+      react-dom: '>=18.2.0'
+      scheduler: '>=0.23.0'
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
@@ -1990,7 +1992,7 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  alien-signals@file:../upstream-alien-signals: {}
+  alien-signals@file:../vendor/alien-signals: {}
 
   anod@0.9.1: {}
 
@@ -2028,15 +2030,17 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cosignals-arena@file:../packages/cosignals-arena(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  cosignals-arena@file:../packages/cosignals-arena(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(scheduler@0.27.0):
     dependencies:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
+      scheduler: 0.27.0
 
-  cosignals@file:../packages/cosignals(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  cosignals@file:../packages/cosignals(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(scheduler@0.27.0):
     dependencies:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
+      scheduler: 0.27.0
 
   csstype@3.2.3: {}
 
