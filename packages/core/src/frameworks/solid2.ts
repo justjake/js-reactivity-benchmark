@@ -7,6 +7,7 @@ import {
   createMemo,
   createRoot,
   createSignal,
+  createTrackedEffect,
 } from "../../node_modules/solid-js-2/dist/solid.js";
 
 // A cell is solid's own accessor function. createSignal returns a
@@ -31,10 +32,12 @@ export const solid2Framework: ReactiveFramework<Solid2Cell> = {
   },
   createComputed: (fn) => createMemo(fn),
   readComputed: (c) => c(),
-  // Solid 2.0's createEffect is natively a (compute, effect) pair; the
-  // tracked shape passes the whole body as the compute with a no-op second
-  // half, the pair shape passes both halves through.
-  effect: (fn) => createEffect(fn, () => {}),
+  // Solid 2.0's createEffect is natively a (compute, effect) pair, and it
+  // also ships createTrackedEffect, a leaf effect whose tracked function is
+  // the side effect itself. Each style maps to its native API.
+  effect: (fn) => {
+    createTrackedEffect(fn);
+  },
   effectPair: (compute, reaction) => createEffect(compute, reaction),
   withBatch: (fn) => {
     fn();
